@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SkillSwap Register</title>
+    <style>
+        body {
+            background: linear-gradient(120deg,#667eea,#764ba2);
+            font-family: Arial;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+
+        .box{
+            background:white;
+            padding:30px;
+            border-radius:12px;
+            width:350px;
+            box-shadow:0 10px 25px rgba(0,0,0,.2);
+            text-align:center;
+        }
+
+        input,select,button{
+            width:100%;
+            padding:10px;
+            margin:10px 0;
+        }
+
+        button{
+            background:#2563eb;
+            color:white;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>SkillSwap Register</h2>
+
+    <form id="registerForm">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+
+        <select id="role">
+            <option value="mentor">Mentor</option>
+            <option value="learner">Learner</option>
+        </select>
+
+        <button type="submit">Register</button>
+    </form>
+</div>
+
+<script>
+document.getElementById("registerForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const data = {
+    email: email.value,
+    password: password.value,
+    role: role.value
+  };
+
+  const res = await fetch("/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  if (res.ok) {
+    alert("Registered successfully!");
+    window.location.href = "/login";
+  } else {
+    const err = await res.json();
+    alert(err.detail);
+  }
+});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login - SkillSwap</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{
+background:linear-gradient(135deg,#667eea,#764ba2);
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+.card{border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.3);}
+</style>
+</head>
+<body>
+
+<div class="card p-4 col-md-4">
+<h3 class="text-center mb-3">🚀 SkillSwap Login</h3>
+
+<form id="loginForm">
+<input class="form-control mb-3" type="email" id="email" placeholder="Email" required>
+<input class="form-control mb-3" type="password" id="password" placeholder="Password" required>
+
+<button class="btn btn-primary w-100">Login</button>
+</form>
+</div>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", async e=>{
+e.preventDefault();
+
+const payload={
+ email:email.value,
+ password:password.value
+};
+
+const res = await fetch("http://localhost:8000/auth/login",{
+ method:"POST",
+ headers:{ "Content-Type":"application/json"},
+ body:JSON.stringify(payload)
+});
+
+const data = await res.json();
+
+if(!res.ok){
+ alert(data.detail);
+ return;
+}
+
+
+localStorage.setItem("token", data.access_token);
+
+// fetch user profile to get role
+const userRes = await fetch("http://localhost:8000/users/me", {
+ headers:{
+   "Authorization":"Bearer "+data.access_token
+ }
+});
+
+const user = await userRes.json();
+localStorage.setItem("token", data.access_token);
+localStorage.setItem("role", data.role);
+
+
+window.location.href="/add-skill";
+
+
+});
+</script>
+
+</body>
+</html>
