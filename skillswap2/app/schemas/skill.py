@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 
@@ -25,21 +25,19 @@ class Skill(SkillBase):
 
 # ---------- USER SKILL ----------
 
-class UserSkillBase(BaseModel):
-    skill_type: str
+class UserSkillCreate(BaseModel):
+    skill_id: int
     proficiency_level: Optional[str] = None
     tags: Optional[List[str]] = []
 
 
-class UserSkillCreate(UserSkillBase):
-    skill_id: int
-
-
-class UserSkill(UserSkillBase):
+class UserSkill(BaseModel):
     id: int
     user_id: int
     skill_id: int
-    skill: Optional[Skill] = None
+    skill_type: str
+    proficiency_level: Optional[str]
+    tags: Optional[List[str]]
     created_at: datetime
 
     class Config:

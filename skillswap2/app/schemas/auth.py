@@ -12,7 +12,7 @@ class TokenData(BaseModel):
     role: Optional[str] = None  # optional, but not used in decode
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 class PasswordResetRequest(BaseModel):

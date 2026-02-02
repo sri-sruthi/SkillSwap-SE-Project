@@ -9,6 +9,15 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    full_name: Optional[str] = None
+    # Mentor-specific fields
+    qualification: Optional[str] = None
+    linkedin: Optional[str] = None
+    bio: Optional[str] = None
+    # Learner-specific fields
+    phone: Optional[str] = None
+    current_study: Optional[str] = None
+    learning_goals: Optional[str] = None
 
 class User(UserBase):
     id: int

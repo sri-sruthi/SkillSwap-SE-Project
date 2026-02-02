@@ -14,10 +14,9 @@ from .skill import (
     Skill,
     SkillCreate,
     UserSkill,
-    UserSkillCreate,
-    SkillBase,
-    UserSkillBase
+    UserSkillCreate
 )
+
 
 __all__ = [
     "User",

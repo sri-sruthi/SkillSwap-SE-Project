@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.utils.security import get_password_hash
-from datetime import datetime
 
 def create_user(db: Session, user: schemas.UserCreate):
     db_user = models.User(
@@ -20,8 +19,8 @@ def get_user_by_email(db: Session, email: str):
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
-def create_user_profile(db: Session, profile: schemas.UserProfileCreate, user_id: int):
-    db_profile = models.UserProfile(**profile.dict(), user_id=user_id)
+def create_user_profile(db: Session, user_id: int):
+    db_profile = models.UserProfile(user_id=user_id)
     db.add(db_profile)
     db.commit()
     db.refresh(db_profile)

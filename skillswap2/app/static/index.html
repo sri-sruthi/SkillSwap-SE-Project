@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to SkillSwap</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+}
+
+.hero-section{
+    text-align:center;
+    color:white;
+    padding:2rem;
+}
+
+.hero-title{
+    font-size:3.5rem;
+    font-weight:bold;
+    margin-bottom:1rem;
+    text-shadow:2px 2px 4px rgba(0,0,0,.3);
+}
+
+.hero-subtitle{
+    font-size:1.5rem;
+    margin-bottom:3rem;
+    opacity:.95;
+}
+
+.role-card{
+    background:white;
+    border-radius:20px;
+    padding:2.5rem;
+    margin:1rem;
+    box-shadow:0 15px 35px rgba(0,0,0,.2);
+    transition:.3s;
+    cursor:pointer;
+}
+
+.role-card:hover{
+    transform:translateY(-10px);
+    box-shadow:0 20px 40px rgba(0,0,0,.3);
+}
+
+.role-icon{
+    font-size:4rem;
+    margin-bottom:1.5rem;
+}
+
+.role-title{
+    font-size:2rem;
+    font-weight:bold;
+    color:#667eea;
+    margin-bottom:1rem;
+}
+
+.role-description{
+    color:#666;
+    margin-bottom:2rem;
+}
+
+.role-features{
+    list-style:none;
+    padding:0;
+    text-align:left;
+    margin-bottom:2rem;
+}
+
+.role-features li{
+    padding:.5rem 0;
+    color:#555;
+}
+
+.role-features li:before{
+    content:"✓ ";
+    color:#28a745;
+    font-weight:bold;
+}
+
+.btn-choose{
+    width:100%;
+    padding:1rem;
+    font-size:1.2rem;
+    font-weight:bold;
+    border-radius:10px;
+    border:none;
+    transition:.3s;
+}
+
+.btn-mentor{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white;
+}
+
+.btn-mentor:hover{
+    transform:scale(1.05);
+}
+
+.btn-learner{
+    background:linear-gradient(135deg,#f093fb,#f5576c);
+    color:white;
+}
+
+.btn-learner:hover{
+    transform:scale(1.05);
+}
+
+.login-link{
+    margin-top:2rem;
+    color:white;
+    font-size:1.1rem;
+}
+
+.login-link a{
+    color:white;
+    font-weight:bold;
+    text-decoration:underline;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="hero-section">
+<h1 class="hero-title">🚀 Welcome to SkillSwap</h1>
+<p class="hero-subtitle">Connect, Learn, and Teach — Your Peer-to-Peer Skill Exchange Platform</p>
+</div>
+
+<div class="row justify-content-center">
+
+<!-- MENTOR -->
+<div class="col-md-5">
+<div class="role-card text-center">
+
+<div class="role-icon">👨‍🏫</div>
+<h2 class="role-title">I am a Mentor</h2>
+<p class="role-description">Share your expertise and help others grow</p>
+
+<ul class="role-features">
+<li>Share your professional skills</li>
+<li>Build your teaching portfolio</li>
+<li>Earn tokens for mentoring</li>
+<li>Connect with eager learners</li>
+<li>Showcase your LinkedIn profile</li>
+</ul>
+<button class="btn btn-mentor btn-choose" onclick="goRegister('mentor')">
+Register as Mentor
+</button>
+
+</div>
+</div>
+
+<!-- LEARNER -->
+<div class="col-md-5">
+<div class="role-card text-center">
+
+<div class="role-icon">🎓</div>
+<h2 class="role-title">I am a Learner</h2>
+<p class="role-description">Discover new skills and learn from experts</p>
+
+<ul class="role-features">
+<li>Learn from experienced mentors</li>
+<li>Browse diverse skill categories</li>
+<li>Flexible learning schedule</li>
+<li>Track your progress</li>
+<li>Build your skill portfolio</li>
+</ul>
+
+<button class="btn btn-learner btn-choose" onclick="goRegister('learner')">
+Register as Learner
+</button>
+
+</div>
+</div>
+
+</div>
+
+<div class="login-link text-center">
+<p>Already have an account? <a href="/login">Login here</a></p>
+</div>
+
+</div>
+
+<script>
+function goRegister(role){
+    window.location.href = "/register?role=" + role;
+}
+</script>
+
+</body>
+</html>

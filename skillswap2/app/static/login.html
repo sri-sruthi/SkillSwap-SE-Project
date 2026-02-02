@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>Login - SkillSwap</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <style>
 body{
 background:linear-gradient(135deg,#667eea,#764ba2);
@@ -12,9 +14,13 @@ display:flex;
 align-items:center;
 justify-content:center;
 }
-.card{border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.3);}
+.card{
+border-radius:15px;
+box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
 </style>
 </head>
+
 <body>
 
 <div class="card p-4 col-md-4">
@@ -24,52 +30,44 @@ justify-content:center;
 <input class="form-control mb-3" type="email" id="email" placeholder="Email" required>
 <input class="form-control mb-3" type="password" id="password" placeholder="Password" required>
 
-<button class="btn btn-primary w-100">Login</button>
+<button type="submit" class="btn btn-primary w-100">Login</button>
 </form>
+
+<div class="text-center mt-3">
+    <p>Don't have an account? <a href="/register" style="color:#667eea">Register here</a></p>
+</div>
 </div>
 
 <script>
-document.getElementById("loginForm").addEventListener("submit", async e=>{
-e.preventDefault();
+document.querySelector("form").addEventListener("submit", async e => {
+    e.preventDefault()
 
-const payload={
- email:email.value,
- password:password.value
-};
+    const formData = new FormData()
+    formData.append("email", email.value)
+    formData.append("password", password.value)
 
-const res = await fetch("http://localhost:8000/auth/login",{
- method:"POST",
- headers:{ "Content-Type":"application/json"},
- body:JSON.stringify(payload)
-});
+    const res = await fetch("http://localhost:8000/auth/login", {
+        method: "POST",
+        body: formData
+    })
 
-const data = await res.json();
+    const data = await res.json()
 
-if(!res.ok){
- alert(data.detail);
- return;
-}
+    if(!res.ok){
+        alert(data.detail)
+        return
+    }
 
-
-localStorage.setItem("token", data.access_token);
-
-// fetch user profile to get role
-const userRes = await fetch("http://localhost:8000/users/me", {
- headers:{
-   "Authorization":"Bearer "+data.access_token
- }
-});
-
-const user = await userRes.json();
-localStorage.setItem("token", data.access_token);
-localStorage.setItem("role", data.role);
-
-
-window.location.href="/add-skill";
-
-
-});
+    // ✅ ROLE BASED REDIRECT
+    if(data.role === "mentor"){
+        window.location.href = "/add-skill"
+    } else {
+        window.location.href = "/search"
+    }
+})
 </script>
+
+
 
 </body>
 </html>

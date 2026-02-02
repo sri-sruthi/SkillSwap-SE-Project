@@ -7,19 +7,59 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-body { background:#f4f6fb }
-.card { border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,.1) }
+body{
+    background:#f5f7fb;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.card{
+    width:450px;
+    padding:30px;
+    border-radius:16px;
+    box-shadow:0 12px 30px rgba(0,0,0,.12);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:15px;
+    font-weight:700;
+}
+
+.role-badge{
+    display:block;
+    text-align:center;
+    background:#2563eb;
+    color:white;
+    padding:6px;
+    border-radius:8px;
+    margin-bottom:20px;
+    font-size:14px;
+}
+
+button{
+    background:#2563eb;
+    border:none;
+}
+
+#mySkills div{
+    background:#f1f3f8;
+    padding:8px 12px;
+    border-radius:8px;
+    margin-top:6px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="container mt-5 col-md-6">
-<div class="card p-4">
+<div class="card">
 
-<h3>🎯 Add Skill</h3>
+<h2>Add Skill</h2>
 
-<span id="roleBadge" class="badge bg-primary mb-3"></span>
+<span id="roleBadge" class="role-badge"></span>
 
 <form id="skillForm">
 
@@ -28,9 +68,10 @@ body { background:#f4f6fb }
 <textarea id="description" class="form-control mb-2" placeholder="Description"></textarea>
 
 <select id="category" class="form-control mb-2">
-<option>Programming</option>
-<option>Design</option>
-<option>Other</option>
+<option value="Programming">Programming</option>
+<option value="Design">Design</option>
+<option value="Business">Business</option>
+<option value="Other">Other</option>
 </select>
 
 <select id="level" class="form-control mb-3">
@@ -39,97 +80,145 @@ body { background:#f4f6fb }
 <option value="advanced">Advanced</option>
 </select>
 
-<button class="btn btn-primary w-100">Save Skill</button>
+<button class="btn btn-primary w-100" type="submit">Save Skill</button>
 
 </form>
 
 <hr>
 
-<h5>📚 My Skills</h5>
-<div id="mySkills"></div>
+<h5 class="mt-3">My Skills</h5>
+<div id="mySkills">Loading...</div>
 
-</div>
 </div>
 
 <script>
-
 const token = localStorage.getItem("token")
 const role = localStorage.getItem("role")
 
+if(!token || !role){
+    alert("Please login again")
+    window.location.href = "/login"
+}
+
 document.getElementById("roleBadge").innerText = "Role: " + role
 
-document.getElementById("skillForm").addEventListener("submit", async e => {
+
+// ================= SAVE SKILL =================
+
+document.getElementById("skillForm").addEventListener("submit", async (e) => {
     e.preventDefault()
 
-    const skillName = document.getElementById("skillName").value
+    const skillName = document.getElementById("skillName").value.trim()
     const description = document.getElementById("description").value
     const category = document.getElementById("category").value
     const level = document.getElementById("level").value
 
-    // STEP 1 — create/get skill
-    const skillRes = await fetch("http://localhost:8000/skills/", {
-        method: "POST",
-        headers: {
-            "Authorization": "Bearer " + token,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name: skillName,
-            description: description,
-            category: category
+    if(!skillName){
+        alert("Enter skill name")
+        return
+    }
+
+    try {
+
+        // ---- CREATE SKILL ----
+        const skillRes = await fetch("http://localhost:8000/skills/", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: skillName,
+                description,
+                category
+            })
         })
-    })
 
-    const skill = await skillRes.json()
+        if(!skillRes.ok){
+            const err = await skillRes.text()
+            alert("Skill create failed: " + err)
+            return
+        }
 
-    // STEP 2 — link skill to user (teach or learn)
-    const endpoint = role === "mentor"
-        ? "http://localhost:8000/skills/teach"
-        : "http://localhost:8000/skills/learn"
+        const skill = await skillRes.json()
 
-    await fetch(endpoint, {
-        method: "POST",
-        headers: {
-            "Authorization": "Bearer " + token,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            skill_id: skill.id,
-            proficiency_level: level
+        // ---- LINK SKILL ----
+        const endpoint = role === "mentor"
+            ? "http://localhost:8000/skills/teach"
+            : "http://localhost:8000/skills/learn"
+
+        const linkRes = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                skill_id: skill.id,
+                proficiency_level: level,
+                tags: []
+            })
         })
-    })
 
-    alert("Skill saved successfully!")
-    loadMySkills()
+        if(!linkRes.ok){
+            const err = await linkRes.text()
+            alert("Link failed: " + err)
+            return
+        }
+
+        alert("✅ Skill added successfully!")
+
+        document.getElementById("skillForm").reset()
+        loadMySkills()
+
+    } catch (err){
+        alert("Unexpected error: " + err)
+    }
 })
 
+
+// ================= LOAD MY SKILLS =================
 
 async function loadMySkills(){
 
     const endpoint = role === "mentor"
-      ? "http://localhost:8000/skills/my/teach"
-      : "http://localhost:8000/skills/my/learn"
+        ? "http://localhost:8000/skills/my/teach"
+        : "http://localhost:8000/skills/my/learn"
 
-    const res = await fetch(endpoint,{
-        headers:{ "Authorization":"Bearer "+token }
-    })
+    try{
+        const res = await fetch(endpoint, {
+            headers: { "Authorization": "Bearer " + token }
+        })
 
-    const skills = await res.json()
+        if(!res.ok){
+            document.getElementById("mySkills").innerText = "Failed to load skills"
+            return
+        }
 
-    let html = ""
+        const skills = await res.json()
 
-    skills.forEach(s=>{
-        html += `
-        <div class="border rounded p-2 mt-2">
-            <strong>${s.skill.name}</strong> — ${s.proficiency_level}
-        </div>`
-    })
+        if(skills.length === 0){
+            document.getElementById("mySkills").innerText = "No skills added yet"
+            return
+        }
 
-    document.getElementById("mySkills").innerHTML = html
+        let html = ""
+        skills.forEach(s => {
+            html += `
+            <div>
+                <strong>${s.skill.name}</strong> — ${s.proficiency_level}
+            </div>`
+        })
+
+        document.getElementById("mySkills").innerHTML = html
+
+    }catch(err){
+        document.getElementById("mySkills").innerText = "Error loading skills"
+    }
 }
 
 loadMySkills()
-
 </script>
+
 </body>
 </html>

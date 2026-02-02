@@ -1,31 +1,45 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api import auth, users, skill
-from app.api import skill   # this file exists so import directly
 
 app = FastAPI()
 
-# --------- HTML Pages ----------
+# Serve static folder
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
+# ----------- PAGES ------------
 
 @app.get("/")
 def home():
-    return FileResponse("app/static/login.html")
+    return FileResponse("app/static/index.html")
+
 
 @app.get("/login")
 def login_page():
     return FileResponse("app/static/login.html")
 
+
 @app.get("/register")
 def register_page():
     return FileResponse("app/static/register.html")
 
+
+from fastapi.responses import FileResponse
+
 @app.get("/add-skill")
-def add_skill_page():
+def add_skill():
     return FileResponse("app/static/add-skill.html")
 
+@app.get("/search")
+def search():
+    return FileResponse("app/static/search.html")
 
-# --------- API Routers ----------
+
+
+# ----------- APIs ------------
 
 app.include_router(auth.router)
 app.include_router(users.router)

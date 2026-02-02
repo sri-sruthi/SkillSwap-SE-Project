@@ -1,54 +1,84 @@
-from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas import Token, UserCreate, User, LoginRequest
-from app.crud.user import get_user_by_email, create_user
-from app.utils.security import authenticate_user, create_access_token, get_current_user
-from app.config import settings
+from app import models
+from app.utils.security import get_password_hash, verify_password
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
+# ============================
+# REGISTER
+# ============================
+
+@router.post("/register")
+def register_user(
+    email: str = Form(...),
+    password: str = Form(...),
+    role: str = Form(...),
+
+    full_name: str = Form(...),
+
+    # learner optional fields
+    phone: str = Form(None),
+    bio: str = Form(None),
+    studying: str = Form(None),
+
+    db: Session = Depends(get_db)
+):
+
+    # Check existing user
+    if db.query(models.User).filter(models.User.email == email).first():
+        raise HTTPException(status_code=400, detail="Email already exists")
+
+    # Create user
+    user = models.User(
+        email=email,
+        password_hash=get_password_hash(password),
+        role=role
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    # Create profile for both mentor & learner
+    profile = models.UserProfile(
+        user_id=user.id,
+        full_name=full_name,
+        phone=phone,
+        bio=bio,
+        studying=studying
+    )
+
+    db.add(profile)
+    db.commit()
+
+    return {"message": "Registered successfully"}
 
 
+# ============================
+# LOGIN
+# ============================
 
-@router.post("/register", response_model=User)
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    if get_user_by_email(db, user.email):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
+@router.post("/login")
+def login_user(
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
 
-    new_user = create_user(db, user)
-    return new_user
-
-
-@router.post("/login", response_model=Token)
-def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    user = authenticate_user(db, login_data.email, login_data.password)
+    user = db.query(models.User).filter(models.User.email == email).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
-        )
+        raise HTTPException(status_code=400, detail="User not found")
 
-    access_token_expires = timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    if not verify_password(password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Wrong password")
 
-    access_token = create_access_token(
-        data={"sub": user.email},
-        expires_delta=access_token_expires
-    )
-
-    
-
+    # Return role for redirect
     return {
-    "access_token": access_token,
-    "token_type": "bearer",
-    "role": user.role
+        "message": "Login successful",
+        "role": user.role
     }
