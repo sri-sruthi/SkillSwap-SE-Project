@@ -1,4 +1,7 @@
-﻿from .user import (
+﻿# app/schemas/__init__.py
+
+# User schemas
+from .user import (
     User,
     UserCreate,
     UserBase,
@@ -8,8 +11,10 @@
     TokenWalletResponse
 )
 
+# Auth schemas
 from .auth import Token, TokenData, LoginRequest
 
+# Skill schemas
 from .skill import (
     Skill,
     SkillCreate,
@@ -17,6 +22,11 @@ from .skill import (
     UserSkillCreate
 )
 
+# Search result schemas (critical fix!)
+from .search import (
+    SkillSearchResult,
+    MentorSearchResult
+)
 
 __all__ = [
     "User",
@@ -31,8 +41,8 @@ __all__ = [
     "LoginRequest",
     "Skill",
     "SkillCreate",
-    "SkillBase",
     "UserSkill",
     "UserSkillCreate",
-    "UserSkillBase",
+    "SkillSearchResult",      # ✅ Now imported
+    "MentorSearchResult"      # ✅ Now imported
 ]

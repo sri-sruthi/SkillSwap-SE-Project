@@ -1,23 +1,50 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
+# ======================
+# TOKEN SCHEMAS
+# ======================
+
 class Token(BaseModel):
     access_token: str
     token_type: str
-    # ⚠️ DO NOT include user_id/role here — they’re not in the JWT
-    # They should be fetched from DB using email (sub)
+    role: str  # Critical for frontend role-based redirects
 
 class TokenData(BaseModel):
     email: Optional[str] = None
-    role: Optional[str] = None  # optional, but not used in decode
+    role: Optional[str] = None
 
-class LoginRequest(BaseModel):
+
+# ======================
+# USER AUTHENTICATION SCHEMAS
+# ======================
+
+class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-class PasswordResetRequest(BaseModel):
+class UserRegister(BaseModel):
+    name: str  # Full name at registration
     email: EmailStr
+    password: str
+    role: str  # "mentor" or "learner"
 
-class PasswordResetConfirm(BaseModel):
-    token: str
-    new_password: str
+# ======================
+# MENTOR-SPECIFIC REGISTRATION
+# ======================
+
+class MentorRegister(UserRegister):
+    qualification: str
+
+# ======================
+# LEARNER-SPECIFIC REGISTRATION
+# ======================
+
+class LearnerRegister(UserRegister):
+    college: str
+    what_to_learn: str
+
+# Add this with your other auth classes
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str

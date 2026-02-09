@@ -1,14 +1,27 @@
 from pydantic_settings import BaseSettings
+from typing import Optional
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql://postgres:pranatha55@localhost:5432/skillswap2"
-    SECRET_KEY: str = "your-secret-key-change-in-production"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
-    RESET_TOKEN_EXPIRE_MINUTES: int = 30
+    # Database
+    DATABASE_URL: str
     
+    # JWT Authentication
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # Application
+    APP_ENV: str = "development"
+    DEBUG: bool = True
+    
+    # Email Configuration (optional but defined)
+    SMTP_SERVER: Optional[str] = None
+    SMTP_PORT: Optional[int] = None
+    EMAIL_FROM: Optional[str] = None
+    EMAIL_PASSWORD: Optional[str] = None
+
     class Config:
         env_file = ".env"
-        extra = "allow"  # This is important!
+        env_file_encoding = "utf-8"
 
 settings = Settings()

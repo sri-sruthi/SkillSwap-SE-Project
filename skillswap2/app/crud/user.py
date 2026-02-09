@@ -4,6 +4,7 @@ from app.utils.security import get_password_hash
 
 def create_user(db: Session, user: schemas.UserCreate):
     db_user = models.User(
+        name=user.name,  # ✅ ADDED - required by your User model
         email=user.email,
         password_hash=get_password_hash(user.password),
         role=user.role
@@ -19,8 +20,12 @@ def get_user_by_email(db: Session, email: str):
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
-def create_user_profile(db: Session, user_id: int):
-    db_profile = models.UserProfile(user_id=user_id)
+def create_user_profile(db: Session, user_id: int, full_name: str = None):
+    """Create user profile with optional full_name"""
+    db_profile = models.UserProfile(
+        user_id=user_id,
+        full_name=full_name or "User"  # ✅ Set default name
+    )
     db.add(db_profile)
     db.commit()
     db.refresh(db_profile)

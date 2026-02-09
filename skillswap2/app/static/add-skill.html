@@ -1,223 +1,656 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Add Skill</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-body{
-    background:#f5f7fb;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-.card{
-    width:450px;
-    padding:30px;
-    border-radius:16px;
-    box-shadow:0 12px 30px rgba(0,0,0,.12);
-}
-
-h2{
-    text-align:center;
-    margin-bottom:15px;
-    font-weight:700;
-}
-
-.role-badge{
-    display:block;
-    text-align:center;
-    background:#2563eb;
-    color:white;
-    padding:6px;
-    border-radius:8px;
-    margin-bottom:20px;
-    font-size:14px;
-}
-
-button{
-    background:#2563eb;
-    border:none;
-}
-
-#mySkills div{
-    background:#f1f3f8;
-    padding:8px 12px;
-    border-radius:8px;
-    margin-top:6px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Skills - SkillSwap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Top Navigation */
+        .top-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            background: #f3f4f6;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .notification-bell:hover {
+            background: #e5e7eb;
+            transform: scale(1.1);
+        }
+        
+        .bell-icon {
+            font-size: 1.4rem;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 50%;
+            min-width: 22px;
+            text-align: center;
+        }
+        
+        .notification-badge.hidden {
+            display: none;
+        }
+        
+        /* Main Container */
+        .container-main {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .page-header p {
+            color: rgba(255,255,255,0.95);
+            font-size: 1.1rem;
+        }
+        
+        /* Cards */
+        .card-custom {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .required {
+            color: #ef4444;
+        }
+        
+        .form-control, .form-select {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary-custom:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary-custom:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Skills List */
+        .skills-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .skill-item {
+            background: #f9fafb;
+            border-left: 5px solid #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            transition: all 0.3s;
+        }
+        
+        .skill-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        }
+        
+        .skill-info h5 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .skill-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        
+        .skill-badge {
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .badge-category {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-level {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+        
+        .skill-description {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+        
+        .skill-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-delete:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="card">
+<!-- Top Navigation -->
+<div class="top-nav">
+    <div class="nav-brand">🎓 SkillSwap</div>
+    <div class="nav-actions">
+        <!-- Notification Bell -->
+        <div class="notification-bell" onclick="checkNotifications()" title="Session Requests">
+            <span class="bell-icon">🔔</span>
+            <span class="notification-badge hidden" id="notificationBadge">0</span>
+        </div>
+        
+        <button onclick="window.location.href='/static/search.html'" class="btn btn-outline-primary">
+            🔍 Browse Skills
+        </button>
+        <button onclick="window.location.href='/static/sessions.html'" class="btn btn-outline-info">
+            📅 Sessions
+        </button>
+        <button onclick="logout()" class="btn btn-outline-danger">
+            🚪 Logout
+        </button>
+    </div>
+</div>
 
-<h2>Add Skill</h2>
+<div class="container-main">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>📚 Manage Your Skills</h1>
+        <p>Add skills you want to teach and manage your expertise</p>
+    </div>
 
-<span id="roleBadge" class="role-badge"></span>
+    <!-- Add New Skill Card -->
+    <div class="card-custom">
+        <h3 class="section-title">➕ Add New Skill</h3>
+        
+        <div id="alertBox" class="alert"></div>
+        
+        <form id="addSkillForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Skill Name <span class="required">*</span></label>
+                        <input type="text" 
+                               id="skillName" 
+                               class="form-control" 
+                               placeholder="e.g., Python Programming"
+                               required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Category <span class="required">*</span></label>
+                        <select id="category" class="form-select" required>
+                            <option value="">-- Select Category --</option>
+                            <option value="Programming">💻 Programming</option>
+                            <option value="Design">🎨 Design</option>
+                            <option value="Data Science">📊 Data Science</option>
+                            <option value="Business">💼 Business</option>
+                            <option value="Marketing">📢 Marketing</option>
+                            <option value="Music">🎵 Music</option>
+                            <option value="Language">🗣️ Language</option>
+                            <option value="Other">🌟 Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description <span class="required">*</span></label>
+                <textarea id="description" 
+                          class="form-control" 
+                          rows="3" 
+                          placeholder="Describe what you'll teach..."
+                          required></textarea>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Your Proficiency Level <span class="required">*</span></label>
+                        <select id="proficiencyLevel" class="form-select" required>
+                            <option value="">-- Select Level --</option>
+                            <option value="Beginner">🌱 Beginner</option>
+                            <option value="Intermediate">📚 Intermediate</option>
+                            <option value="Advanced">🚀 Advanced</option>
+                            <option value="Expert">⭐ Expert</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Tags (Optional)</label>
+                        <input type="text" 
+                               id="tags" 
+                               class="form-control" 
+                               placeholder="e.g., Python, Django, API">
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-primary-custom" id="submitBtn">
+                ✅ Add Skill
+            </button>
+        </form>
+    </div>
 
-<form id="skillForm">
-
-<input id="skillName" class="form-control mb-2" placeholder="Skill name" required>
-
-<textarea id="description" class="form-control mb-2" placeholder="Description"></textarea>
-
-<select id="category" class="form-control mb-2">
-<option value="Programming">Programming</option>
-<option value="Design">Design</option>
-<option value="Business">Business</option>
-<option value="Other">Other</option>
-</select>
-
-<select id="level" class="form-control mb-3">
-<option value="beginner">Beginner</option>
-<option value="intermediate">Intermediate</option>
-<option value="advanced">Advanced</option>
-</select>
-
-<button class="btn btn-primary w-100" type="submit">Save Skill</button>
-
-</form>
-
-<hr>
-
-<h5 class="mt-3">My Skills</h5>
-<div id="mySkills">Loading...</div>
-
+    <!-- My Skills Card -->
+    <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="section-title mb-0">📖 My Teaching Skills</h3>
+            <button onclick="loadMySkills()" class="btn btn-outline-primary">
+                🔄 Refresh
+            </button>
+        </div>
+        
+        <div id="skillsContainer" class="skills-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading your skills...</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-const token = localStorage.getItem("token")
-const role = localStorage.getItem("role")
+const API_BASE = "http://localhost:8000";
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
 
-if(!token || !role){
-    alert("Please login again")
-    window.location.href = "/login"
+// Check auth & role
+if (!token || role !== "mentor") {
+  alert("Please login as a mentor to manage skills.");
+  window.location.href = "/static/login.html";
 }
 
-document.getElementById("roleBadge").innerText = "Role: " + role
+// Initialize
+window.onload = async () => {
+  await loadMySkills();
+  await checkPendingRequests();
+  setInterval(checkPendingRequests, 30000);
+};
 
-
-// ================= SAVE SKILL =================
-
-document.getElementById("skillForm").addEventListener("submit", async (e) => {
-    e.preventDefault()
-
-    const skillName = document.getElementById("skillName").value.trim()
-    const description = document.getElementById("description").value
-    const category = document.getElementById("category").value
-    const level = document.getElementById("level").value
-
-    if(!skillName){
-        alert("Enter skill name")
-        return
+// Check for pending session requests
+async function checkPendingRequests() {
+  try {
+    const response = await fetch(`${API_BASE}/sessions/pending`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const sessions = await response.json();
+      const badge = document.getElementById("notificationBadge");
+      
+      if (sessions.length > 0) {
+        badge.textContent = sessions.length;
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
     }
-
-    try {
-
-        // ---- CREATE SKILL ----
-        const skillRes = await fetch("http://localhost:8000/skills/", {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + token,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: skillName,
-                description,
-                category
-            })
-        })
-
-        if(!skillRes.ok){
-            const err = await skillRes.text()
-            alert("Skill create failed: " + err)
-            return
-        }
-
-        const skill = await skillRes.json()
-
-        // ---- LINK SKILL ----
-        const endpoint = role === "mentor"
-            ? "http://localhost:8000/skills/teach"
-            : "http://localhost:8000/skills/learn"
-
-        const linkRes = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + token,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                skill_id: skill.id,
-                proficiency_level: level,
-                tags: []
-            })
-        })
-
-        if(!linkRes.ok){
-            const err = await linkRes.text()
-            alert("Link failed: " + err)
-            return
-        }
-
-        alert("✅ Skill added successfully!")
-
-        document.getElementById("skillForm").reset()
-        loadMySkills()
-
-    } catch (err){
-        alert("Unexpected error: " + err)
-    }
-})
-
-
-// ================= LOAD MY SKILLS =================
-
-async function loadMySkills(){
-
-    const endpoint = role === "mentor"
-        ? "http://localhost:8000/skills/my/teach"
-        : "http://localhost:8000/skills/my/learn"
-
-    try{
-        const res = await fetch(endpoint, {
-            headers: { "Authorization": "Bearer " + token }
-        })
-
-        if(!res.ok){
-            document.getElementById("mySkills").innerText = "Failed to load skills"
-            return
-        }
-
-        const skills = await res.json()
-
-        if(skills.length === 0){
-            document.getElementById("mySkills").innerText = "No skills added yet"
-            return
-        }
-
-        let html = ""
-        skills.forEach(s => {
-            html += `
-            <div>
-                <strong>${s.skill.name}</strong> — ${s.proficiency_level}
-            </div>`
-        })
-
-        document.getElementById("mySkills").innerHTML = html
-
-    }catch(err){
-        document.getElementById("mySkills").innerText = "Error loading skills"
-    }
+  } catch (error) {
+    console.error("Error checking notifications:", error);
+  }
 }
 
-loadMySkills()
+// Check notifications (redirect to sessions page)
+function checkNotifications() {
+  window.location.href = "/static/sessions.html";
+}
+
+// Load my teaching skills
+async function loadMySkills() {
+  const container = document.getElementById("skillsContainer");
+  container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+
+  try {
+    const res = await fetch(`${API_BASE}/skills/my/teach`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        alert("Session expired. Please log in again.");
+        window.location.href = "/static/login.html";
+        return;
+      }
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const skills = await res.json();
+    displaySkills(skills);
+  } catch (error) {
+    console.error("Load skills error:", error);
+    document.getElementById("skillsContainer").innerHTML = `
+      <div class="alert alert-danger">
+        ❌ Failed to load skills. Please refresh or log in again.
+      </div>
+    `;
+  }
+}
+
+// Display skills
+function displaySkills(skills) {
+  const container = document.getElementById("skillsContainer");
+
+  if (skills.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <h4>No Skills Added Yet</h4>
+        <p>Add your first teaching skill using the form above</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = skills.map(skill => `
+    <div class="skill-item">
+      <div class="skill-info">
+        <h5>${skill.title}</h5>
+        <div class="skill-meta">
+          <span class="skill-badge badge-category">${skill.category}</span>
+          <span class="skill-badge badge-level">${skill.proficiency_level}</span>
+        </div>
+        <p class="skill-description">${skill.description}</p>
+        ${skill.tags && skill.tags.length > 0 ? `<p class="skill-description"><strong>Tags:</strong> ${skill.tags.join(', ')}</p>` : ''}
+      </div>
+      <div class="skill-actions">
+        <!-- ✅ skill.id = UserSkill.id (correct for DELETE endpoint) -->
+        <button onclick="deleteSkill(${skill.id})" class="btn-delete" title="Delete">
+          🗑️
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Add skill form submission
+document.getElementById("addSkillForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData();
+  formData.append("title", document.getElementById("skillName").value.trim());
+  formData.append("description", document.getElementById("description").value.trim());
+  formData.append("category", document.getElementById("category").value);
+  formData.append("proficiency_level", document.getElementById("proficiencyLevel").value);
+
+  const tagsInput = document.getElementById("tags").value.trim();
+  if (tagsInput) {
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
+    tags.forEach(tag => formData.append("tags", tag));
+  }
+
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Adding...";
+
+  try {
+    const response = await fetch(`${API_BASE}/skills/`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`
+        // ✅ NO Content-Type header — let browser set multipart/form-data
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: "Unknown error" }));
+      throw new Error(err.detail || `HTTP ${response.status}`);
+    }
+
+    showAlert("✅ Skill added successfully!", "success");
+    document.getElementById("addSkillForm").reset();
+    await loadMySkills();
+  } catch (error) {
+    console.error("Add skill error:", error);
+    showAlert(`❌ ${error.message}`, "danger");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "✅ Add Skill";
+  }
+});
+
+// Delete skill
+async function deleteSkill(skillId) {
+  if (!confirm("⚠️ Are you sure you want to remove this skill? This cannot be undone.")) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/skills/${skillId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: "Delete failed" }));
+      throw new Error(err.detail || `HTTP ${response.status}`);
+    }
+
+    showAlert("✅ Skill removed successfully!", "success");
+    await loadMySkills();
+  } catch (error) {
+    console.error("Delete skill error:", error);
+    showAlert(`❌ ${error.message}`, "danger");
+  }
+}
+
+// Show alert
+function showAlert(message, type = 'danger') {
+  const alertBox = document.getElementById("alertBox");
+  alertBox.className = `alert alert-${type} show`;
+  alertBox.textContent = message;
+  
+  setTimeout(() => {
+    alertBox.classList.remove('show');
+  }, 5000);
+}
+
+// Logout
+function logout() {
+  localStorage.clear();
+  window.location.href = "/static/login.html";
+}
 </script>
 
 </body>
