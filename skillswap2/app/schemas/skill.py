@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 
 # ======================
@@ -16,9 +16,8 @@ class SkillCreate(SkillBase):
 
 class Skill(SkillBase):
     id: int
-    
-    class Config:
-        from_attributes = True  # For SQLAlchemy ORM mode
+
+    model_config = ConfigDict(from_attributes=True)  # For SQLAlchemy ORM mode
 
 # ======================
 # USER_SKILL SCHEMAS
@@ -36,9 +35,8 @@ class UserSkillCreate(UserSkillBase):
 class UserSkill(UserSkillBase):
     id: int
     user_id: int
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 # ======================
 # RESPONSE MODELS

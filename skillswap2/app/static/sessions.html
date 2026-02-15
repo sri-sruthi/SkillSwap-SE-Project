@@ -43,6 +43,7 @@
       transition: all 0.3s;
       border: none;
       font-weight: 600;
+      position: relative;
     }
     .profile-avatar-small {
       width: 35px;
@@ -55,10 +56,233 @@
       justify-content: center;
       font-size: 1.2rem;
     }
+    .profile-sidebar {
+      position: fixed;
+      right: -350px;
+      top: 0;
+      width: 350px;
+      height: 100vh;
+      background: white;
+      box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
+      transition: right 0.3s ease-in-out;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .profile-sidebar.open {
+      right: 0;
+    }
+    .profile-sidebar-header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      padding: 30px 20px;
+      color: white;
+      position: relative;
+    }
+    .close-sidebar {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .close-sidebar:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+    .profile-avatar-large {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: white;
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 2.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .profile-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .profile-role {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      display: inline-block;
+      width: 100%;
+    }
+    .profile-content {
+      padding: 25px 20px;
+    }
+    .profile-section {
+      margin-bottom: 25px;
+    }
+    .profile-section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .profile-info-item {
+      background: #f9fafb;
+      padding: 12px 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border-left: 3px solid #667eea;
+    }
+    .profile-info-label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .profile-info-value {
+      font-size: 0.95rem;
+      color: #1f2937;
+      font-weight: 600;
+    }
+    .profile-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+    .profile-btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    .profile-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .profile-btn-outline {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+    .profile-btn-outline:hover {
+      background: #f3f4f6;
+    }
+    .profile-btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
+    .sidebar-overlay.show {
+      display: block;
+    }
     .main-content {
       padding: 30px 20px;
       max-width: 1200px;
       margin: 0 auto;
+    }
+    .notification-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 11px;
+      padding: 0 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 2px solid #fff;
+    }
+    .notification-badge.hidden {
+      display: none;
+    }
+    .notifications-panel {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 20px;
+      color: white;
+      backdrop-filter: blur(3px);
+    }
+    .notifications-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .notifications-list {
+      display: grid;
+      gap: 10px;
+    }
+    .notification-item {
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .notification-message {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+    .notification-time {
+      margin-top: 4px;
+      opacity: 0.85;
+      font-size: 0.75rem;
+    }
+    .notification-mark-read {
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      background: transparent;
+      color: white;
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .notification-mark-read:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+    .notification-muted {
+      opacity: 0.85;
+      font-size: 0.9rem;
     }
     .page-header {
       text-align: center;
@@ -162,6 +386,36 @@
       border-radius: 6px;
       font-size: 1rem;
     }
+    .session-hint {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+    .review-section {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .review-section .btn {
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .mentor-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .mentor-rating-badge {
+      display: none;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
   </style>
 </head>
 <body>
@@ -169,10 +423,116 @@
 <!-- Top Navbar -->
 <div class="top-navbar">
   <div class="navbar-brand">🎓 SkillSwap</div>
-  <button class="profile-trigger" onclick="toggleProfile()">
-    <div class="profile-avatar-small" id="navAvatar">👤</div>
-    <span id="navName">User</span>
-  </button>
+
+  <div class="d-flex align-items-center">
+    <a href="/static/recommendations.html" class="btn btn-primary me-2">
+      🤖 Find Mentors (AI)
+    </a>
+    <a href="/static/token-wallet.html" class="btn btn-outline-success me-2">
+      💰 Wallet
+    </a>
+
+    <button class="profile-trigger" onclick="toggleProfileSidebar()">
+      <div class="profile-avatar-small" id="navAvatar">👤</div>
+      <span id="navName">User</span>
+      <span class="notification-badge hidden" id="navNotificationBadge">0</span>
+    </button>
+  </div>
+</div>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeProfileSidebar()"></div>
+
+<!-- Sliding Profile Sidebar (RIGHT) -->
+<div class="profile-sidebar" id="profileSidebar">
+  <div class="profile-sidebar-header">
+    <button class="close-sidebar" onclick="closeProfileSidebar()">×</button>
+    <div class="profile-avatar-large" id="profileAvatar">👤</div>
+    <div class="profile-name" id="profileName">Loading...</div>
+    <div class="profile-role" id="profileRole">User</div>
+  </div>
+  <div class="profile-content">
+    <div id="mentorProfile" style="display:none;">
+      <div class="profile-section">
+        <div class="profile-section-title">📊 Profile Information</div>
+        <div class="profile-info-item">
+          <div class="profile-info-label">Email</div>
+          <div class="profile-info-value" id="mentorEmail">-</div>
+        </div>
+        <div class="profile-info-item">
+          <div class="profile-info-label">Qualification</div>
+          <div class="profile-info-value" id="mentorQualification">-</div>
+        </div>
+        <div class="profile-info-item">
+          <div class="profile-info-label">Experience</div>
+          <div class="profile-info-value" id="mentorExperience">-</div>
+        </div>
+        <div class="profile-info-item">
+          <div class="profile-info-label">Age</div>
+          <div class="profile-info-value" id="mentorAge">-</div>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">⚙️ Quick Actions</div>
+        <button onclick="window.location.href='/static/add-skill.html'" class="profile-btn profile-btn-primary">
+          ➕ Add Skill
+        </button>
+        <button onclick="window.location.href='/static/sessions.html'" class="profile-btn profile-btn-outline">
+          📅 My Sessions
+        </button>
+        <button id="mentorRatingsBtn" onclick="openMyMentorProfile()" class="profile-btn profile-btn-outline">
+          ⭐ My Ratings & Reviews
+        </button>
+        <button onclick="showEditProfile()" class="profile-btn profile-btn-outline">
+          ✏️ Edit Profile
+        </button>
+      </div>
+      <div class="profile-section">
+        <button onclick="logout()" class="profile-btn profile-btn-danger">
+          🚪 Logout
+        </button>
+      </div>
+    </div>
+
+    <div id="learnerProfile" style="display:none;">
+      <div class="profile-section">
+        <div class="profile-section-title">📊 Profile Information</div>
+        <div class="profile-info-item">
+          <div class="profile-info-label">Full Name</div>
+          <div class="profile-info-value" id="learnerFullName">-</div>
+        </div>
+        <div class="profile-info-item">
+          <div class="profile-info-label">Email</div>
+          <div class="profile-info-value" id="learnerEmail">-</div>
+        </div>
+        <div class="profile-info-item">
+          <div class="profile-info-label">Institution</div>
+          <div class="profile-info-value" id="learnerInstitution">-</div>
+        </div>
+        <div class="profile-info-item">
+          <div class="profile-info-label">Age</div>
+          <div class="profile-info-value" id="learnerAge">-</div>
+        </div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-title">⚙️ Quick Actions</div>
+        <button onclick="window.location.href='/static/add-skill.html?type=learn'" class="profile-btn profile-btn-primary">
+          🎯 Add Learning Skill
+        </button>
+        <button onclick="window.location.href='/static/sessions.html'" class="profile-btn profile-btn-primary">
+          📅 My Sessions
+        </button>
+        <button onclick="showEditProfile()" class="profile-btn profile-btn-outline">
+          ✏️ Edit Profile
+        </button>
+      </div>
+      <div class="profile-section">
+        <button onclick="logout()" class="profile-btn profile-btn-danger">
+          🚪 Logout
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Main Content -->
@@ -180,6 +540,14 @@
   <div class="page-header">
     <h1>📅 My Sessions</h1>
     <p>Manage your learning and teaching sessions</p>
+  </div>
+
+  <div class="notifications-panel" id="notificationsPanel" style="display:none;">
+    <div class="notifications-header">
+      <span>🔔 Updates</span>
+      <button class="notification-mark-read" onclick="markAllNotificationsRead()">Mark all as read</button>
+    </div>
+    <div id="notificationsList" class="notifications-list"></div>
   </div>
 
   <div id="sessionsContainer">
@@ -212,14 +580,53 @@
   </div>
 </div>
 
+<!-- Session Request Modal (fallback for recommendations redirect) -->
+<div id="sessionRequestModal" class="reschedule-modal">
+  <div class="modal-content">
+    <h3>Request Session</h3>
+    <input type="hidden" id="requestMentorId">
+    <div class="mb-3">
+      <label class="form-label">Skill</label>
+      <select id="requestSkillId" class="form-control" required></select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Date</label>
+      <input type="date" id="requestDate" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Time</label>
+      <input type="time" id="requestTime" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Notes</label>
+      <textarea id="requestNotes" class="form-control" rows="3" placeholder="What would you like to learn?"></textarea>
+    </div>
+    <div class="d-flex gap-2">
+      <button id="submitFallbackRequestBtn" class="btn btn-primary" onclick="submitSessionRequestFallback()">Request Session</button>
+      <button class="btn btn-secondary" onclick="closeSessionRequestModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const API_BASE = "http://localhost:8000";
+const API_BASE = window.location.origin;
 let token = localStorage.getItem("token");
-let role = localStorage.getItem("role");
+let role = (localStorage.getItem("role") || "").toLowerCase();
+let canTeach = false;
+let canLearn = false;
 let currentUserId = null;
+let notificationsPollHandle = null;
+let requestModalSkillsLoaded = false;
+let isSubmittingFallbackRequest = false;
+let showCancelledSessions = false;
+
+function normalizeRole(value) {
+  return String(value || "").trim().toLowerCase();
+}
 
 // Check authentication
-if (!token || !role) {
+if (!token) {
   alert("Please login first!");
   window.location.href = "/static/login.html";
 }
@@ -231,18 +638,373 @@ async function loadProfile() {
       headers: { "Authorization": `Bearer ${token}` }
     });
     
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      window.location.href = "/static/login.html";
+      return;
+    }
     if (!res.ok) throw new Error("Failed to load profile");
     const data = await res.json();
+    const profile = data.profile || {};
+    const fullName = (profile.full_name || data.name || "").trim() ||
+                     (data.email ? data.email.split("@")[0] : "User");
     
     currentUserId = data.id;
-    document.getElementById("navName").textContent = data.name;
-    document.getElementById("navAvatar").textContent = role === "mentor" ? "👨‍🏫" : "👤";
+    role = normalizeRole(data.role || role);
+    localStorage.setItem("role", role);
+    canTeach = Boolean(data.can_teach);
+    canLearn = Boolean(data.can_learn);
+    if (role !== "admin" && !canTeach && !canLearn) {
+      canLearn = true;
+    }
+
+    document.getElementById("navName").textContent = fullName;
+    document.getElementById("profileName").textContent = fullName;
+
+    document.getElementById("mentorEmail").textContent = data.email || "-";
+    document.getElementById("mentorQualification").textContent = profile.qualification || "Not specified";
+    document.getElementById("mentorExperience").textContent = profile.experience || "Not specified";
+    document.getElementById("mentorAge").textContent = profile.age || "Not specified";
+    document.getElementById("learnerFullName").textContent = fullName;
+    document.getElementById("learnerEmail").textContent = data.email || "-";
+    document.getElementById("learnerInstitution").textContent = profile.college || "Not specified";
+    document.getElementById("learnerAge").textContent = profile.age || "Not specified";
+
+    const mentorProfileEl = document.getElementById("mentorProfile");
+    const learnerProfileEl = document.getElementById("learnerProfile");
+    const mentorRatingsBtn = document.getElementById("mentorRatingsBtn");
+    if (mentorRatingsBtn) {
+      mentorRatingsBtn.style.display = canTeach ? "block" : "none";
+    }
+
+    if (role === "admin") {
+      document.getElementById("navAvatar").textContent = "🛡️";
+      document.getElementById("profileAvatar").textContent = "🛡️";
+      document.getElementById("profileRole").textContent = "Admin";
+      mentorProfileEl.style.display = "none";
+      learnerProfileEl.style.display = "none";
+    } else if (canTeach && canLearn) {
+      document.getElementById("navAvatar").textContent = "🧑‍🎓";
+      document.getElementById("profileAvatar").textContent = "🧑‍🎓";
+      document.getElementById("profileRole").textContent = "Mentor + Learner";
+      // Dual-role users see one consolidated sidebar section to avoid duplication.
+      mentorProfileEl.style.display = "block";
+      learnerProfileEl.style.display = "none";
+    } else if (canTeach) {
+      document.getElementById("navAvatar").textContent = "👨‍🏫";
+      document.getElementById("profileAvatar").textContent = "👨‍🏫";
+      document.getElementById("profileRole").textContent = "Mentor";
+      mentorProfileEl.style.display = "block";
+      learnerProfileEl.style.display = "none";
+    } else {
+      document.getElementById("navAvatar").textContent = "👤";
+      document.getElementById("profileAvatar").textContent = "👤";
+      document.getElementById("profileRole").textContent = "Learner";
+      learnerProfileEl.style.display = "block";
+      mentorProfileEl.style.display = "none";
+    }
     
     loadSessions();
+    loadNotifications();
+    handleSessionRequestQuery();
   } catch (error) {
     console.error("Profile load error:", error);
     alert("Session expired. Please login again.");
     window.location.href = "/static/login.html";
+  }
+}
+
+function formatNotificationTime(isoValue) {
+  if (!isoValue) return "";
+  const date = new Date(isoValue);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString();
+}
+
+function escapeHtml(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function checkReviewStatus(sessionId) {
+  try {
+    const response = await fetch(`${API_BASE}/reviews/session/${sessionId}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!response.ok) return false;
+    const review = await response.json();
+    return Boolean(review);
+  } catch (error) {
+    console.error("Error checking review:", error);
+    return false;
+  }
+}
+
+function getSessionActions(session, isMentor, canConfirmPending, isReschedulePending, otherName) {
+  let actionButtons = "";
+
+  if (canConfirmPending) {
+    const acceptLabel = isReschedulePending ? "Accept Reschedule" : "Accept";
+    const declineLabel = isReschedulePending ? "Decline Reschedule" : "Decline";
+    actionButtons = `
+      <button class="btn btn-success btn-action" onclick="acceptSession(${session.id})">
+        <i class="fas fa-check"></i> ${acceptLabel}
+      </button>
+      <button class="btn btn-danger btn-action" onclick="declineSession(${session.id})">
+        <i class="fas fa-times"></i> ${declineLabel}
+      </button>
+    `;
+  } else if (!isMentor && session.status === "Confirmed") {
+    actionButtons = `
+      <button class="btn btn-primary btn-action" onclick="completeSession(${session.id})">
+        <i class="fas fa-check-circle"></i> Mark Complete
+      </button>
+    `;
+  }
+
+  const showCancelButton =
+    session.status === "Confirmed" ||
+    (session.status === "Pending" && !isReschedulePending);
+
+  if (showCancelButton) {
+    actionButtons += `
+      <button class="btn btn-outline-danger btn-action" onclick="cancelSession(${session.id})">
+        <i class="fas fa-times-circle"></i> Cancel
+      </button>
+    `;
+  }
+
+  if (isMentor && session.status === "Confirmed") {
+    actionButtons += `
+      <button class="btn btn-warning btn-action" onclick="showRescheduleModal(${session.id})">
+        <i class="fas fa-clock"></i> Reschedule
+      </button>
+    `;
+  }
+
+  return actionButtons || `<span class="text-muted">No actions available for this session.</span>`;
+}
+
+async function checkAndReview(sessionId) {
+  try {
+    const response = await fetch(`${API_BASE}/reviews/eligibility/${sessionId}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (response.status === 404) {
+      alert("Review feature is not available yet.");
+      return;
+    }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to check review eligibility");
+    }
+
+    const eligibility = await response.json();
+    if (eligibility.can_review) {
+      window.location.href = `/static/review-form.html?session_id=${sessionId}`;
+      return;
+    }
+
+    alert(eligibility.reason || "You cannot review this session.");
+    if ((eligibility.reason || "").toLowerCase().includes("already")) {
+      const reviewBtn = document.getElementById(`review-btn-${sessionId}`);
+      const viewBtn = document.getElementById(`view-review-btn-${sessionId}`);
+      if (reviewBtn) reviewBtn.style.display = "none";
+      if (viewBtn) viewBtn.style.display = "inline-block";
+    }
+  } catch (error) {
+    console.error("Error checking review eligibility:", error);
+    alert(`Failed to check review status: ${error.message}`);
+  }
+}
+
+async function viewSessionReview(sessionId) {
+  try {
+    const response = await fetch(`${API_BASE}/reviews/session/${sessionId}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (response.status === 404) {
+      alert("No review found for this session.");
+      return;
+    }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to load review");
+    }
+
+    const review = await response.json();
+    if (review) showReviewModal(review);
+  } catch (error) {
+    console.error("Error viewing review:", error);
+    alert(`Failed to load review: ${error.message}`);
+  }
+}
+
+function showReviewModal(review) {
+  const rating = Math.max(1, Math.min(5, Number(review.rating) || 0));
+  const stars = "⭐".repeat(rating) + "☆".repeat(5 - rating);
+  const submittedOn = review.created_at
+    ? new Date(review.created_at).toLocaleDateString()
+    : "Unknown date";
+  const safeComment = review.comment
+    ? `<p>${escapeHtml(review.comment)}</p>`
+    : '<p class="text-muted">No comment provided</p>';
+
+  const modalHtml = `
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Your Review</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="text-center mb-3">
+              <div style="font-size: 2rem;">${stars}</div>
+            </div>
+            ${safeComment}
+            <small class="text-muted">Submitted on ${submittedOn}</small>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const oldModal = document.getElementById("reviewModal");
+  if (oldModal) oldModal.remove();
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+  const modalElement = document.getElementById("reviewModal");
+  const modal = new bootstrap.Modal(modalElement);
+  modal.show();
+}
+
+async function displayMentorRating(mentorId, sessionId) {
+  const badge = document.getElementById(`mentor-rating-${sessionId}`);
+  if (!badge || !mentorId) return;
+
+  try {
+    const response = await fetch(`${API_BASE}/reviews/rating/${mentorId}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!response.ok) return;
+
+    const rating = await response.json();
+    if ((rating.total_reviews || 0) > 0) {
+      badge.textContent = `⭐ ${Number(rating.average_rating).toFixed(1)} (${rating.total_reviews})`;
+      badge.style.display = "inline-flex";
+      badge.onclick = () => {
+        window.location.href = `/static/mentor-profile.html?mentor_id=${mentorId}`;
+      };
+    }
+  } catch (error) {
+    console.error("Error loading mentor rating:", error);
+  }
+}
+
+async function initializeReviewStatuses(sessions) {
+  const completedLearnerSessions = sessions.filter(
+    (session) => session.status === "Completed" && session.learner_id === currentUserId
+  );
+
+  for (const session of completedLearnerSessions) {
+    const hasReview = await checkReviewStatus(session.id);
+    const reviewBtn = document.getElementById(`review-btn-${session.id}`);
+    const viewBtn = document.getElementById(`view-review-btn-${session.id}`);
+
+    if (hasReview) {
+      if (reviewBtn) reviewBtn.style.display = "none";
+      if (viewBtn) viewBtn.style.display = "inline-block";
+    }
+  }
+}
+
+async function initializeMentorRatings(sessions) {
+  const completedLearnerSessions = sessions.filter(
+    (session) => session.status === "Completed" && session.learner_id === currentUserId
+  );
+
+  await Promise.all(
+    completedLearnerSessions.map((session) =>
+      displayMentorRating(session.mentor_id, session.id)
+    )
+  );
+}
+
+function renderNotifications(notifications) {
+  const panel = document.getElementById("notificationsPanel");
+  const list = document.getElementById("notificationsList");
+  const badge = document.getElementById("navNotificationBadge");
+  const unreadCount = notifications.length;
+
+  if (unreadCount > 0) {
+    badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
+    badge.classList.remove("hidden");
+    panel.style.display = "block";
+    list.innerHTML = notifications.map(item => `
+      <div class="notification-item">
+        <div>
+          <p class="notification-message">${item.message}</p>
+          <div class="notification-time">${formatNotificationTime(item.created_at)}</div>
+        </div>
+        <button class="notification-mark-read" onclick="markNotificationRead(${item.id})">Read</button>
+      </div>
+    `).join("");
+    return;
+  }
+
+  badge.classList.add("hidden");
+  panel.style.display = "none";
+  list.innerHTML = `<div class="notification-muted">No unread notifications.</div>`;
+}
+
+async function loadNotifications() {
+  try {
+    const res = await fetch(`${API_BASE}/notifications/my?unread_only=true&limit=10`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    renderNotifications(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error("Notification load error:", error);
+  }
+}
+
+async function markNotificationRead(notificationId) {
+  try {
+    const res = await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
+      method: "PATCH",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to mark notification as read");
+    await loadNotifications();
+  } catch (error) {
+    console.error("Notification update error:", error);
+  }
+}
+
+async function markAllNotificationsRead() {
+  try {
+    const res = await fetch(`${API_BASE}/notifications/read-all`, {
+      method: "PATCH",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to mark notifications as read");
+    await loadNotifications();
+  } catch (error) {
+    console.error("Notification update error:", error);
   }
 }
 
@@ -267,71 +1029,87 @@ async function loadSessions() {
 // Render sessions
 function renderSessions(sessions) {
   const container = document.getElementById("sessionsContainer");
-  
-  if (sessions.length === 0) {
+  const statusOrder = { Pending: 0, Confirmed: 1, Completed: 2, Cancelled: 3 };
+  const sortedSessions = [...sessions].sort((a, b) => {
+    const aw = statusOrder[a.status] ?? 99;
+    const bw = statusOrder[b.status] ?? 99;
+    if (aw !== bw) return aw - bw;
+    const at = new Date(a.scheduled_time || a.created_at || 0).getTime();
+    const bt = new Date(b.scheduled_time || b.created_at || 0).getTime();
+    return bt - at;
+  });
+
+  const cancelledCount = sortedSessions.filter((s) => s.status === "Cancelled").length;
+  const visibleSessions = showCancelledSessions
+    ? sortedSessions
+    : sortedSessions.filter((s) => s.status !== "Cancelled");
+
+  if (sortedSessions.length === 0) {
     container.innerHTML = `<div class="no-sessions">No sessions found.</div>`;
     return;
   }
-  
-  container.innerHTML = sessions.map(session => {
-    const isMentor = role === "mentor";
+
+  const toggleHtml = cancelledCount > 0 ? `
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-sm btn-outline-light" onclick="toggleCancelledSessions()">
+        ${showCancelledSessions ? "Hide" : "Show"} Cancelled Sessions (${cancelledCount})
+      </button>
+    </div>
+  ` : "";
+
+  const cardsHtml = visibleSessions.map(session => {
+    const isMentor = session.mentor_id === currentUserId;
+    const canConfirmPending = session.status === "Pending" && session.awaiting_my_confirmation === true;
+    const isReschedulePending = session.status === "Pending" && session.is_reschedule_pending === true;
     const otherPerson = isMentor ? 
       { name: session.learner_name, email: session.learner_email } : 
       { name: session.mentor_name, qualification: session.mentor_qualification };
+    const otherName = escapeHtml(otherPerson.name || "the other user");
+    const skillValue = session.skill_name ? escapeHtml(session.skill_name) : "N/A";
+    const qualificationValue = otherPerson.qualification ? escapeHtml(otherPerson.qualification) : "N/A";
+    const notesValue = session.notes ? escapeHtml(session.notes) : "None";
     
     const statusClass = `status-${session.status.toLowerCase()}`;
-    
-    let actionButtons = '';
-    
-    // Mentor-specific actions
-    if (isMentor && session.status === "Pending") {
-      actionButtons = `
-        <button class="btn btn-success btn-action" onclick="acceptSession(${session.id})">
-          <i class="fas fa-check"></i> Accept
-        </button>
-        <button class="btn btn-danger btn-action" onclick="declineSession(${session.id})">
-          <i class="fas fa-times"></i> Decline
-        </button>
-      `;
-    }
-    // Learner-specific actions
-    else if (!isMentor && session.status === "Confirmed") {
-      actionButtons = `
-        <button class="btn btn-primary btn-action" onclick="completeSession(${session.id})">
-          <i class="fas fa-check-circle"></i> Mark Complete
-        </button>
-      `;
+    let sessionHint = "";
+
+    if (session.status === "Pending") {
+      if (isReschedulePending) {
+        sessionHint = canConfirmPending
+          ? `Reschedule requested by ${otherName}. Accept to move slot, decline to keep your previous confirmed slot.`
+          : `Reschedule request sent. Waiting for ${otherName} to confirm.`;
+      } else {
+        sessionHint = canConfirmPending
+          ? "New session request awaiting your response."
+          : "Session request sent. Waiting for mentor confirmation.";
+      }
     }
     
-    // Cancel button for all users
-    if (session.status === "Pending" || session.status === "Confirmed") {
-      actionButtons += `
-        <button class="btn btn-outline-danger btn-action" onclick="cancelSession(${session.id})">
-          <i class="fas fa-times-circle"></i> Cancel
-        </button>
-      `;
-    }
-    
-    // Reschedule ONLY for mentors
-    if (isMentor && (session.status === "Pending" || session.status === "Confirmed")) {
-      actionButtons += `
-        <button class="btn btn-warning btn-action" onclick="showRescheduleModal(${session.id})">
-          <i class="fas fa-clock"></i> Reschedule
-        </button>
-      `;
-    }
+    const actionButtons = getSessionActions(
+      session,
+      isMentor,
+      canConfirmPending,
+      isReschedulePending,
+      otherName
+    );
     
     return `
-      <div class="session-card">
+      <div class="session-card" data-status="${session.status}" data-session-id="${session.id}" id="session-${session.id}">
         <div class="session-header">
-          <div class="session-title">${otherPerson.name}</div>
+          <div class="mentor-info">
+            <div class="session-title">${otherName}</div>
+            ${!isMentor && session.status === "Completed" ? `
+              <span class="badge bg-warning text-dark mentor-rating-badge" id="mentor-rating-${session.id}">
+                ⭐ --
+              </span>
+            ` : ""}
+          </div>
           <span class="status-badge ${statusClass}">${session.status}</span>
         </div>
         
         <div class="session-info">
           <div class="info-row">
             <span class="info-label">Skill:</span>
-            <span class="info-value">${session.skill_name || "N/A"}</span>
+            <span class="info-value">${skillValue}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Date & Time:</span>
@@ -340,21 +1118,159 @@ function renderSessions(sessions) {
           ${isMentor ? '' : `
           <div class="info-row">
             <span class="info-label">Qualification:</span>
-            <span class="info-value">${otherPerson.qualification || "N/A"}</span>
+            <span class="info-value">${qualificationValue}</span>
           </div>
           `}
           <div class="info-row">
             <span class="info-label">Notes:</span>
-            <span class="info-value">${session.notes || "None"}</span>
+            <span class="info-value">${notesValue}</span>
           </div>
+          ${sessionHint ? `<div class="session-hint">${sessionHint}</div>` : ""}
         </div>
         
         <div class="action-buttons">
           ${actionButtons}
         </div>
+
+        ${session.status === "Completed" && !isMentor ? `
+          <div class="review-section" id="review-section-${session.id}">
+            <button class="btn btn-success btn-sm" onclick="checkAndReview(${session.id})" id="review-btn-${session.id}">
+              ⭐ Write Review
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="viewSessionReview(${session.id})" style="display: none;" id="view-review-btn-${session.id}">
+              📝 View Review
+            </button>
+          </div>
+        ` : ""}
       </div>
     `;
   }).join('');
+
+  container.innerHTML = toggleHtml + (cardsHtml || `<div class="no-sessions">No active sessions found.</div>`);
+
+  void initializeReviewStatuses(visibleSessions);
+  void initializeMentorRatings(visibleSessions);
+}
+
+function toggleCancelledSessions() {
+  showCancelledSessions = !showCancelledSessions;
+  loadSessions();
+}
+
+async function ensureRequestModalSkills() {
+  if (requestModalSkillsLoaded) return;
+  const select = document.getElementById("requestSkillId");
+  select.innerHTML = `<option value="">Loading skills...</option>`;
+  try {
+    const res = await fetch(`${API_BASE}/skills/`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("Failed to load skills");
+    const skills = await res.json();
+    const normalized = (Array.isArray(skills) ? skills : [])
+      .map((skill) => ({
+        id: skill.id,
+        label: skill.name || skill.title || "",
+      }))
+      .filter((skill) => skill.id && skill.label);
+
+    select.innerHTML = normalized.length
+      ? normalized.map((skill) => `<option value="${skill.id}">${skill.label}</option>`).join("")
+      : `<option value="">No skills available</option>`;
+    requestModalSkillsLoaded = true;
+  } catch (error) {
+    console.error("Skill load error:", error);
+    select.innerHTML = `<option value="">Failed to load skills</option>`;
+  }
+}
+
+async function showSessionRequestModal(mentorId) {
+  await ensureRequestModalSkills();
+  document.getElementById("requestMentorId").value = mentorId;
+  document.getElementById("requestDate").value = "";
+  document.getElementById("requestTime").value = "";
+  document.getElementById("requestNotes").value = "";
+  document.getElementById("sessionRequestModal").style.display = "flex";
+}
+
+function closeSessionRequestModal() {
+  document.getElementById("sessionRequestModal").style.display = "none";
+}
+
+async function submitSessionRequestFallback() {
+  if (isSubmittingFallbackRequest) return;
+
+  const mentorId = document.getElementById("requestMentorId").value;
+  const skillId = document.getElementById("requestSkillId").value;
+  const date = document.getElementById("requestDate").value;
+  const time = document.getElementById("requestTime").value;
+  const notes = document.getElementById("requestNotes").value.trim();
+
+  if (!mentorId || !skillId) {
+    alert("Please select a mentor and skill.");
+    return;
+  }
+  if (!date || !time) {
+    alert("Please select date and time.");
+    return;
+  }
+  if (!notes) {
+    alert("Please add a short note.");
+    return;
+  }
+
+  const submitBtn = document.getElementById("submitFallbackRequestBtn");
+  const originalBtnLabel = submitBtn ? submitBtn.textContent : "";
+
+  try {
+    isSubmittingFallbackRequest = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending...";
+    }
+
+    const formData = new FormData();
+    formData.append("mentor_id", mentorId);
+    formData.append("skill_id", skillId);
+    formData.append("scheduled_time", `${date}T${time}`);
+    formData.append("notes", notes);
+
+    const res = await fetch(`${API_BASE}/sessions/request`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: formData
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to request session");
+    }
+
+    closeSessionRequestModal();
+    const url = new URL(window.location.href);
+    url.searchParams.delete("action");
+    url.searchParams.delete("mentor");
+    window.history.replaceState({}, "", url.toString());
+    alert("Session request sent successfully.");
+    loadSessions();
+    loadNotifications();
+  } catch (error) {
+    alert(`Failed to request session: ${error.message}`);
+  } finally {
+    isSubmittingFallbackRequest = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnLabel || "Request Session";
+    }
+  }
+}
+
+function handleSessionRequestQuery() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("action") !== "request") return;
+  const mentorId = Number(params.get("mentor"));
+  if (!mentorId || !Number.isFinite(mentorId)) return;
+  if (normalizeRole(role) === "admin") return;
+  void showSessionRequestModal(mentorId);
 }
 
 // Session actions
@@ -382,8 +1298,12 @@ async function updateSessionStatus(sessionId, action) {
       headers: { "Authorization": `Bearer ${token}` }
     });
     
-    if (!res.ok) throw new Error("Action failed");
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Action failed");
+    }
     loadSessions(); // Refresh
+    loadNotifications();
   } catch (error) {
     alert(`Failed to ${action} session: ${error.message}`);
   }
@@ -404,7 +1324,7 @@ function closeRescheduleModal() {
 async function submitReschedule() {
   const sessionId = document.getElementById("rescheduleSessionId").value;
   const newTime = document.getElementById("newDateTime").value;
-  const reason = document.getElementById("rescheduleReason").value;
+  const reason = document.getElementById("rescheduleReason").value.trim();
   
   if (!newTime) {
     alert("Please select a new date and time");
@@ -422,22 +1342,51 @@ async function submitReschedule() {
       body: formData
     });
     
-    if (!res.ok) throw new Error("Reschedule failed");
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Reschedule failed");
+    }
     closeRescheduleModal();
     loadSessions();
+    loadNotifications();
   } catch (error) {
     alert(`Reschedule failed: ${error.message}`);
   }
 }
 
-// Profile toggle
-function toggleProfile() {
+function toggleProfileSidebar() {
+  document.getElementById("profileSidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+
+function closeProfileSidebar() {
+  document.getElementById("profileSidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
+
+function showEditProfile() {
+  closeProfileSidebar();
   window.location.href = "/static/edit-profile.html";
+}
+
+function openMyMentorProfile() {
+  if (!currentUserId) {
+    alert("Profile is still loading. Please try again.");
+    return;
+  }
+  closeProfileSidebar();
+  window.location.href = `/static/mentor-profile.html?mentor_id=${currentUserId}`;
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "/static/login.html";
 }
 
 // Initialize
 window.onload = () => {
   loadProfile();
+  notificationsPollHandle = setInterval(loadNotifications, 20000);
 };
 </script>
 </body>

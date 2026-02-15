@@ -12,38 +12,70 @@ body{
     background: linear-gradient(135deg,#667eea,#764ba2);
     min-height:100vh;
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     justify-content:center;
+    padding:12px 0;
     font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
 }
 
 .hero-section{
     text-align:center;
     color:white;
-    padding:2rem;
+    padding:.75rem 1rem 1rem;
 }
 
 .hero-title{
-    font-size:3.5rem;
+    font-size:2.7rem;
     font-weight:bold;
-    margin-bottom:1rem;
+    margin-bottom:.45rem;
     text-shadow:2px 2px 4px rgba(0,0,0,.3);
 }
 
 .hero-subtitle{
-    font-size:1.5rem;
-    margin-bottom:3rem;
+    font-size:1.15rem;
+    margin-bottom:.75rem;
     opacity:.95;
+}
+
+.ai-inline-badge{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:.2rem;
+    background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.34);
+    color:#fff;
+    padding:.72rem 1rem;
+    border-radius:14px;
+    text-align:center;
+    backdrop-filter:blur(2px);
+    margin-top:.15rem;
+}
+
+.ai-inline-title{
+    font-size:1rem;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.ai-inline-subtitle{
+    font-size:.88rem;
+    font-weight:500;
+    opacity:.95;
+    line-height:1.25;
 }
 
 .role-card{
     background:white;
     border-radius:20px;
-    padding:2.5rem;
-    margin:1rem;
+    padding:1.6rem;
+    margin:.55rem;
     box-shadow:0 15px 35px rgba(0,0,0,.2);
     transition:.3s;
-    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    width:100%;
 }
 
 .role-card:hover{
@@ -52,32 +84,34 @@ body{
 }
 
 .role-icon{
-    font-size:4rem;
-    margin-bottom:1.5rem;
+    font-size:3.1rem;
+    margin-bottom:.8rem;
 }
 
 .role-title{
-    font-size:2rem;
+    font-size:1.55rem;
     font-weight:bold;
     color:#667eea;
-    margin-bottom:1rem;
+    margin-bottom:.5rem;
 }
 
 .role-description{
     color:#666;
-    margin-bottom:2rem;
+    margin-bottom:1rem;
 }
 
 .role-features{
     list-style:none;
     padding:0;
     text-align:left;
-    margin-bottom:2rem;
+    margin-bottom:.75rem;
+    flex-grow:1;
 }
 
 .role-features li{
-    padding:.5rem 0;
+    padding:.22rem 0;
     color:#555;
+    font-size:.95rem;
 }
 
 .role-features li:before{
@@ -88,36 +122,51 @@ body{
 
 .btn-choose{
     width:100%;
-    padding:1rem;
-    font-size:1.2rem;
+    padding:.8rem;
+    font-size:1.05rem;
     font-weight:bold;
     border-radius:10px;
     border:none;
     transition:.3s;
 }
 
-.btn-mentor{
-    background:linear-gradient(135deg,#667eea,#764ba2);
-    color:white;
+.btn-student{
+    background:linear-gradient(135deg,#ec4899,#db2777);
+    color:#ffffff;
+    border:2px solid #f9a8d4;
+    box-shadow:0 12px 28px rgba(236,72,153,.45);
+    max-width:380px;
 }
 
-.btn-mentor:hover{
-    transform:scale(1.05);
+.btn-student:hover{
+    background:linear-gradient(135deg,#be185d,#9d174d);
+    color:#ffffff;
+    border-color:#fbcfe8;
+    transform:scale(1.03);
 }
 
-.btn-learner{
-    background:linear-gradient(135deg,#f093fb,#f5576c);
-    color:white;
-}
-
-.btn-learner:hover{
-    transform:scale(1.05);
+.single-cta{
+    display:flex;
+    justify-content:center;
+    margin-top:auto;
+    padding-top:1rem;
 }
 
 .login-link{
-    margin-top:2rem;
+    margin-top:.55rem;
     color:white;
-    font-size:1.1rem;
+    font-size:1rem;
+    padding-bottom:.2rem;
+}
+
+@media (max-width: 768px){
+    body{
+        align-items:flex-start;
+        padding:16px 0 24px;
+    }
+    .hero-title{
+        font-size:2.2rem;
+    }
 }
 
 .login-link a{
@@ -125,76 +174,90 @@ body{
     font-weight:bold;
     text-decoration:underline;
 }
+
+.layout-shell{
+    min-height:calc(100vh - 24px);
+    display:flex;
+    flex-direction:column;
+}
+
+.landing-roles{
+    margin-top:.85rem;
+}
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="container layout-shell">
 
 <div class="hero-section">
 <h1 class="hero-title">🚀 Welcome to SkillSwap</h1>
 <p class="hero-subtitle">Connect, Learn, and Teach — Your Peer-to-Peer Skill Exchange Platform</p>
+<div class="ai-inline-badge">
+<div class="ai-inline-title">🤖 AI-Powered Matching</div>
+<div class="ai-inline-subtitle">Let our recommendation engine find the best mentors for your learning goals.</div>
+</div>
 </div>
 
-<div class="row justify-content-center">
+<div class="row justify-content-center align-items-stretch landing-roles">
 
-<!-- MENTOR -->
-<div class="col-md-5">
+<!-- TEACH -->
+<div class="col-md-5 d-flex">
 <div class="role-card text-center">
 
 <div class="role-icon">👨‍🏫</div>
-<h2 class="role-title">I am a Mentor</h2>
-<p class="role-description">Share your expertise and help others grow</p>
+<h2 class="role-title">I can teach</h2>
+<p class="role-description">Offer your skills and mentor peers</p>
 
 <ul class="role-features">
-<li>Share your professional skills</li>
+<li>Add skills you can teach</li>
 <li>Build your teaching portfolio</li>
 <li>Earn tokens for mentoring</li>
-<li>Connect with eager learners</li>
-<li>Showcase your LinkedIn profile</li>
+<li>Get ratings and reviews</li>
+<li>Help your peers grow</li>
 </ul>
-<button class="btn btn-mentor btn-choose" onclick="goRegister('mentor')">
-Register as Mentor
-</button>
 
 </div>
 </div>
 
-<!-- LEARNER -->
-<div class="col-md-5">
+<!-- LEARN -->
+<div class="col-md-5 d-flex">
 <div class="role-card text-center">
 
 <div class="role-icon">🎓</div>
-<h2 class="role-title">I am a Learner</h2>
-<p class="role-description">Discover new skills and learn from experts</p>
+<h2 class="role-title">I want to learn</h2>
+<p class="role-description">Find mentors and grow new skills</p>
 
 <ul class="role-features">
 <li>Learn from experienced mentors</li>
 <li>Browse diverse skill categories</li>
+<li>Use AI-powered mentor matching</li>
 <li>Flexible learning schedule</li>
-<li>Track your progress</li>
-<li>Build your skill portfolio</li>
+<li>Spend tokens to book sessions</li>
 </ul>
 
-<button class="btn btn-learner btn-choose" onclick="goRegister('learner')">
-Register as Learner
+</div>
+</div>
+
+</div>
+
+<div class="single-cta">
+<button class="btn btn-student btn-choose" onclick="goRegister()">
+Create Student Account
 </button>
-
-</div>
-</div>
-
 </div>
 
 <div class="login-link text-center">
-<p>Already have an account? <a href="/login">Login here</a></p>
+<p>Already have an account? <a href="/static/login.html">Login here</a></p>
+<p style="margin-top:.4rem;">Administrator? <a href="/admin/login">Admin login</a></p>
 </div>
 
 </div>
 
 <script>
-function goRegister(role){
-    window.location.href = "/register?role=" + role;
+function goRegister(){
+    window.location.href = "/static/register.html";
 }
 </script>
 

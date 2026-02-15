@@ -5,6 +5,80 @@ from app import models
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
+TEACH_SKILL_TYPES = ("teach", "offer")
+LEARN_SKILL_TYPES = ("learn", "need")
+
+
+def _teaching_skill_sort_key(user_skill: models.UserSkill) -> tuple[int, int]:
+    raw_type = (user_skill.skill_type or "").strip().lower()
+    return (0 if raw_type == "teach" else 1, user_skill.id)
+
+
+# ======================
+# GET: Public mentor profile basics
+# ======================
+@router.get("/public/{mentor_id}")
+def get_public_mentor_profile(
+    mentor_id: int,
+    db: Session = Depends(get_db)
+):
+    mentor = db.query(models.User).filter(
+        models.User.id == mentor_id,
+        models.User.is_active == True
+    ).first()
+
+    if not mentor:
+        raise HTTPException(status_code=404, detail="Mentor not found")
+
+    teaches_any_skill = db.query(models.UserSkill.id).filter(
+        models.UserSkill.user_id == mentor_id,
+        models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES),
+    ).first()
+    if not teaches_any_skill:
+        raise HTTPException(status_code=404, detail="Mentor not found")
+
+    teach_rows = (
+        db.query(models.UserSkill)
+        .filter(
+            models.UserSkill.user_id == mentor_id,
+            models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES),
+        )
+        .order_by(models.UserSkill.id.asc())
+        .all()
+    )
+
+    # Collapse legacy alias duplicates (teach + offer for same skill).
+    by_skill_id = {}
+    for row in teach_rows:
+        by_skill_id.setdefault(row.skill_id, []).append(row)
+    preferred_rows = [
+        sorted(rows, key=_teaching_skill_sort_key)[0]
+        for _, rows in sorted(by_skill_id.items(), key=lambda item: item[0])
+    ]
+
+    profile = mentor.profile
+    full_name = profile.full_name if profile and profile.full_name else mentor.name
+    qualification = profile.qualification if profile else None
+    experience = profile.experience if profile else None
+
+    return {
+        "id": mentor.id,
+        "name": mentor.name,
+        "full_name": full_name,
+        "display_name": full_name or mentor.name,
+        "qualification": qualification,
+        "experience": experience,
+        "role": mentor.role,
+        "teaching_skills": [
+            {
+                "skill_id": row.skill_id,
+                "title": row.skill.title if row.skill else "N/A",
+                "category": row.skill.category if row.skill else "General",
+                "proficiency_level": row.proficiency_level or "Not specified",
+            }
+            for row in preferred_rows
+        ],
+    }
 
 
 # ======================
@@ -22,24 +96,32 @@ def get_current_user_profile(
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
 
+    can_teach = db.query(models.UserSkill.id).filter(
+        models.UserSkill.user_id == current_user.id,
+        models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES),
+    ).first() is not None
+    can_learn = db.query(models.UserSkill.id).filter(
+        models.UserSkill.user_id == current_user.id,
+        models.UserSkill.skill_type.in_(LEARN_SKILL_TYPES),
+    ).first() is not None
+
     base_info = {
         "id": current_user.id,
         "email": current_user.email,
         "role": current_user.role,
         "name": current_user.name,  # From User model
+        "can_teach": can_teach,
+        "can_learn": can_learn,
         "profile": {
             "full_name": profile.full_name,
             "phone": profile.phone,
-            "age": profile.age
+            "age": profile.age,
+            "qualification": profile.qualification,
+            "experience": profile.experience,
+            "college": profile.studying,
+            "what_to_learn": profile.bio,
         }
     }
-
-    if current_user.role == "mentor":
-        base_info["profile"]["qualification"] = profile.qualification
-        base_info["profile"]["experience"] = profile.experience
-    else:
-        base_info["profile"]["college"] = profile.studying
-        base_info["profile"]["what_to_learn"] = profile.bio
 
     return base_info
 
@@ -76,17 +158,15 @@ def update_profile(
     if age is not None:
         profile.age = age
 
-    # Role-specific updates
-    if current_user.role == "mentor":
-        if qualification is not None:
-            profile.qualification = qualification
-        if experience is not None:
-            profile.experience = experience
-    else:  # learner
-        if studying is not None:
-            profile.studying = studying
-        if bio is not None:
-            profile.bio = bio
+    # Capability-based profile fields (dual-role friendly)
+    if qualification is not None:
+        profile.qualification = qualification
+    if experience is not None:
+        profile.experience = experience
+    if studying is not None:
+        profile.studying = studying
+    if bio is not None:
+        profile.bio = bio
 
     db.commit()
     return {"message": "Profile updated successfully"}

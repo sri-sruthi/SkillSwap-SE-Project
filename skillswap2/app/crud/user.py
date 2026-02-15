@@ -45,7 +45,7 @@ def update_user_profile(db: Session, user_id: int, profile_update: schemas.UserP
     return db_profile
 
 def create_token_wallet(db: Session, user_id: int):
-    wallet = models.TokenWallet(user_id=user_id, balance=0)
+    wallet = models.TokenWallet(user_id=user_id, balance=20)
     db.add(wallet)
     db.commit()
     db.refresh(wallet)

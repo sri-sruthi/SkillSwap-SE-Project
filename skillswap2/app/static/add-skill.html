@@ -122,6 +122,32 @@
             align-items: center;
             gap: 10px;
         }
+
+        .mode-switch {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 999px;
+            padding: 4px;
+            gap: 4px;
+            margin-top: 12px;
+        }
+
+        .mode-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 700;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.95);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: #1f2937;
+        }
         
         /* Form */
         .form-group {
@@ -339,6 +365,9 @@
         <button onclick="window.location.href='/static/search.html'" class="btn btn-outline-primary">
             🔍 Browse Skills
         </button>
+        <button onclick="window.location.href='/static/recommendations.html'" class="btn btn-primary">
+            🤖 AI Recommendations
+        </button>
         <button onclick="window.location.href='/static/sessions.html'" class="btn btn-outline-info">
             📅 Sessions
         </button>
@@ -352,12 +381,16 @@
     <!-- Page Header -->
     <div class="page-header">
         <h1>📚 Manage Your Skills</h1>
-        <p>Add skills you want to teach and manage your expertise</p>
+        <p id="pageSubtitle">Add skills you want to teach and manage your expertise</p>
+        <div class="mode-switch" role="tablist" aria-label="Skill mode selector">
+            <button type="button" class="mode-btn active" id="teachModeBtn" onclick="switchSkillMode('teach')">I Teach</button>
+            <button type="button" class="mode-btn" id="learnModeBtn" onclick="switchSkillMode('learn')">I Learn</button>
+        </div>
     </div>
 
     <!-- Add New Skill Card -->
     <div class="card-custom">
-        <h3 class="section-title">➕ Add New Skill</h3>
+        <h3 class="section-title" id="addSectionTitle">➕ Add New Skill</h3>
         
         <div id="alertBox" class="alert"></div>
         
@@ -393,7 +426,7 @@
             </div>
             
             <div class="form-group">
-                <label class="form-label">Description <span class="required">*</span></label>
+                <label class="form-label" id="descriptionLabel">Description <span class="required">*</span></label>
                 <textarea id="description" 
                           class="form-control" 
                           rows="3" 
@@ -404,7 +437,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="form-label">Your Proficiency Level <span class="required">*</span></label>
+                        <label class="form-label" id="proficiencyLabel">Your Proficiency Level <span class="required">*</span></label>
                         <select id="proficiencyLevel" class="form-select" required>
                             <option value="">-- Select Level --</option>
                             <option value="Beginner">🌱 Beginner</option>
@@ -427,7 +460,7 @@
             </div>
             
             <button type="submit" class="btn-primary-custom" id="submitBtn">
-                ✅ Add Skill
+                ✅ Add Teaching Skill
             </button>
         </form>
     </div>
@@ -435,7 +468,7 @@
     <!-- My Skills Card -->
     <div class="card-custom">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="section-title mb-0">📖 My Teaching Skills</h3>
+            <h3 class="section-title mb-0" id="listSectionTitle">📖 My Teaching Skills</h3>
             <button onclick="loadMySkills()" class="btn btn-outline-primary">
                 🔄 Refresh
             </button>
@@ -451,18 +484,82 @@
 </div>
 
 <script>
-const API_BASE = "http://localhost:8000";
+const API_BASE = window.location.origin;
 const token = localStorage.getItem("token");
-const role = localStorage.getItem("role");
+const role = (localStorage.getItem("role") || "").toLowerCase();
+const MODE_META = {
+  teach: {
+    pageSubtitle: "Add skills you want to teach and manage your expertise",
+    addSectionTitle: "➕ Add Teaching Skill",
+    listSectionTitle: "📖 My Teaching Skills",
+    descriptionLabel: "Description",
+    descriptionPlaceholder: "Describe what you'll teach...",
+    submitLabel: "✅ Add Teaching Skill",
+    addingLabel: "Adding teaching skill...",
+    emptyHint: "Add your first teaching skill using the form above",
+    successMessage: `✅ Teaching skill added successfully!<br><br>
+      <a href="/static/recommendations.html" class="btn btn-primary btn-sm">🤖 Get AI Mentor Recommendations</a>`
+  },
+  learn: {
+    pageSubtitle: "Add skills you want to learn and track your learning goals",
+    addSectionTitle: "➕ Add Learning Skill",
+    listSectionTitle: "🎯 My Learning Skills",
+    descriptionLabel: "Learning Goal",
+    descriptionPlaceholder: "Describe what you want to learn...",
+    submitLabel: "✅ Add Learning Skill",
+    addingLabel: "Adding learning skill...",
+    emptyHint: "Add your first learning skill using the form above",
+    successMessage: `✅ Learning skill added successfully!<br><br>
+      <a href="/static/recommendations.html" class="btn btn-primary btn-sm">🤖 View AI Recommendations</a>`
+  }
+};
 
-// Check auth & role
-if (!token || role !== "mentor") {
-  alert("Please login as a mentor to manage skills.");
+function normalizeSkillType(value) {
+  const v = String(value || "").trim().toLowerCase();
+  if (v === "offer") return "teach";
+  if (v === "need") return "learn";
+  return v === "learn" ? "learn" : "teach";
+}
+
+const modeFromQuery = new URLSearchParams(window.location.search).get("type");
+let currentSkillType = normalizeSkillType(modeFromQuery);
+
+// Check auth (allow both mentor and learner personas here).
+if (!token) {
+  alert("Please login to manage skills.");
   window.location.href = "/static/login.html";
+}
+if (role === "admin") {
+  alert("Admins cannot manage teaching/learning skills.");
+  window.location.href = "/admin/dashboard";
+}
+
+function applyModeToUi() {
+  const meta = MODE_META[currentSkillType];
+  document.getElementById("pageSubtitle").textContent = meta.pageSubtitle;
+  document.getElementById("addSectionTitle").textContent = meta.addSectionTitle;
+  document.getElementById("listSectionTitle").textContent = meta.listSectionTitle;
+  document.getElementById("descriptionLabel").innerHTML = `${meta.descriptionLabel} <span class="required">*</span>`;
+  document.getElementById("description").placeholder = meta.descriptionPlaceholder;
+  document.getElementById("submitBtn").textContent = meta.submitLabel;
+  document.getElementById("teachModeBtn").classList.toggle("active", currentSkillType === "teach");
+  document.getElementById("learnModeBtn").classList.toggle("active", currentSkillType === "learn");
+}
+
+function switchSkillMode(mode) {
+  const nextMode = normalizeSkillType(mode);
+  if (nextMode === currentSkillType) return;
+  currentSkillType = nextMode;
+  const url = new URL(window.location.href);
+  url.searchParams.set("type", currentSkillType);
+  window.history.replaceState({}, "", url.toString());
+  applyModeToUi();
+  loadMySkills();
 }
 
 // Initialize
 window.onload = async () => {
+  applyModeToUi();
   await loadMySkills();
   await checkPendingRequests();
   setInterval(checkPendingRequests, 30000);
@@ -496,13 +593,13 @@ function checkNotifications() {
   window.location.href = "/static/sessions.html";
 }
 
-// Load my teaching skills
+// Load my skills for current mode (teach/learn)
 async function loadMySkills() {
   const container = document.getElementById("skillsContainer");
   container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
 
   try {
-    const res = await fetch(`${API_BASE}/skills/my/teach`, {
+    const res = await fetch(`${API_BASE}/skills/my/${currentSkillType}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -532,11 +629,12 @@ function displaySkills(skills) {
   const container = document.getElementById("skillsContainer");
 
   if (skills.length === 0) {
+    const meta = MODE_META[currentSkillType];
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📚</div>
         <h4>No Skills Added Yet</h4>
-        <p>Add your first teaching skill using the form above</p>
+        <p>${meta.emptyHint}</p>
       </div>
     `;
     return;
@@ -572,6 +670,7 @@ document.getElementById("addSkillForm").addEventListener("submit", async (e) => 
   formData.append("description", document.getElementById("description").value.trim());
   formData.append("category", document.getElementById("category").value);
   formData.append("proficiency_level", document.getElementById("proficiencyLevel").value);
+  formData.append("skill_type", currentSkillType);
 
   const tagsInput = document.getElementById("tags").value.trim();
   if (tagsInput) {
@@ -581,7 +680,7 @@ document.getElementById("addSkillForm").addEventListener("submit", async (e) => 
 
   const submitBtn = document.getElementById("submitBtn");
   submitBtn.disabled = true;
-  submitBtn.textContent = "Adding...";
+  submitBtn.textContent = MODE_META[currentSkillType].addingLabel;
 
   try {
     const response = await fetch(`${API_BASE}/skills/`, {
@@ -598,15 +697,16 @@ document.getElementById("addSkillForm").addEventListener("submit", async (e) => 
       throw new Error(err.detail || `HTTP ${response.status}`);
     }
 
-    showAlert("✅ Skill added successfully!", "success");
+    showAlert(MODE_META[currentSkillType].successMessage, "success", true);
     document.getElementById("addSkillForm").reset();
+    applyModeToUi();
     await loadMySkills();
   } catch (error) {
     console.error("Add skill error:", error);
     showAlert(`❌ ${error.message}`, "danger");
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "✅ Add Skill";
+    submitBtn.textContent = MODE_META[currentSkillType].submitLabel;
   }
 });
 
@@ -636,10 +736,14 @@ async function deleteSkill(skillId) {
 }
 
 // Show alert
-function showAlert(message, type = 'danger') {
+function showAlert(message, type = 'danger', allowHtml = false) {
   const alertBox = document.getElementById("alertBox");
   alertBox.className = `alert alert-${type} show`;
-  alertBox.textContent = message;
+  if (allowHtml) {
+    alertBox.innerHTML = message;
+  } else {
+    alertBox.textContent = message;
+  }
   
   setTimeout(() => {
     alertBox.classList.remove('show');

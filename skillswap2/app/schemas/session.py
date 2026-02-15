@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -46,8 +46,19 @@ class SessionBase(BaseModel):
     updated_at: Optional[datetime] = None
 
 class Session(SessionBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SessionResponse(SessionBase):
+    """Detailed session response used by session API list endpoints."""
+    learner_name: Optional[str] = None
+    mentor_name: Optional[str] = None
+    mentor_qualification: Optional[str] = None
+    skill_name: Optional[str] = None
+    awaiting_my_confirmation: bool = False
+    is_reschedule_pending: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
 
 # ======================
 # SESSION DISPLAY FOR FRONTEND

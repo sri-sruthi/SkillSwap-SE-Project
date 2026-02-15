@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Token Wallet - SkillSwap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container-main {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .wallet-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .balance-display {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .balance-amount {
+            font-size: 4rem;
+            font-weight: 900;
+            margin: 10px 0;
+        }
+
+        .balance-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .transaction-item {
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .transaction-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .transaction-credit {
+            border-left-color: #10b981;
+        }
+
+        .transaction-debit {
+            border-left-color: #ef4444;
+        }
+
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .transaction-type {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .transaction-amount {
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+
+        .amount-credit {
+            color: #10b981;
+        }
+
+        .amount-debit {
+            color: #ef4444;
+        }
+
+        .transaction-meta {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .badge {
+            font-size: 0.85rem;
+            padding: 5px 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <div class="top-nav">
+        <div class="nav-brand">SkillSwap</div>
+        <div class="nav-actions">
+            <a href="/static/sessions.html" class="btn btn-outline-primary me-2">My Sessions</a>
+            <a href="/static/search.html" class="btn btn-outline-primary me-2">Find Mentors</a>
+            <button onclick="logout()" class="btn btn-outline-danger">Logout</button>
+        </div>
+    </div>
+
+    <div class="container-main">
+        <!-- Balance Display -->
+        <div class="wallet-card">
+            <h2 class="text-center mb-4">💰 My Token Wallet</h2>
+            
+            <div class="balance-display" id="balanceDisplay">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row text-center mt-4">
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <h6 class="text-muted">Session Cost</h6>
+                        <h4 class="text-primary">10 tokens</h4>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <h6 class="text-muted">Session Reward</h6>
+                        <h4 class="text-success">10 tokens</h4>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <h6 class="text-muted">Can Book?</h6>
+                        <h4 id="eligibilityStatus">-</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="wallet-card">
+            <h3 class="mb-4">📜 Transaction History</h3>
+            
+            <div id="transactionsList">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading transactions...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let currentBalance = 0;
+
+        // ==========================================
+        // LOAD WALLET DATA
+        // ==========================================
+        async function loadWallet() {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    window.location.href = "/static/login.html";
+                    return;
+                }
+
+                // Fetch wallet balance
+                const balanceResponse = await fetch(`${API_BASE}/tokens/wallet`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (!balanceResponse.ok) {
+                    throw new Error("Failed to fetch wallet");
+                }
+
+                const walletData = await balanceResponse.json();
+                currentBalance = walletData.balance;
+
+                // Display balance
+                document.getElementById("balanceDisplay").innerHTML = `
+                    <div class="balance-label">Current Balance</div>
+                    <div class="balance-amount">${walletData.balance}</div>
+                    <div class="balance-label">tokens</div>
+                `;
+
+                // Fetch and display eligibility
+                const eligibilityResponse = await fetch(`${API_BASE}/tokens/eligibility`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (eligibilityResponse.ok) {
+                    const eligibility = await eligibilityResponse.json();
+                    const statusEl = document.getElementById("eligibilityStatus");
+                    
+                    if (eligibility.can_book) {
+                        statusEl.innerHTML = '<span class="text-success">✅ Yes</span>';
+                    } else {
+                        statusEl.innerHTML = `<span class="text-danger">❌ No<br><small>(Need ${eligibility.deficit} more)</small></span>`;
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error loading wallet:", error);
+                document.getElementById("balanceDisplay").innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load wallet. Please try again.
+                    </div>
+                `;
+            }
+        }
+
+        // ==========================================
+        // LOAD TRANSACTION HISTORY
+        // ==========================================
+        async function loadTransactions() {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`${API_BASE}/tokens/transactions?limit=50`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch transactions");
+                }
+
+                const transactions = await response.json();
+                const listEl = document.getElementById("transactionsList");
+
+                if (transactions.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <h5>No transactions yet</h5>
+                            <p>Your transaction history will appear here</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                listEl.innerHTML = transactions.map(t => {
+                    const normalizedType = String(t.type || "").toUpperCase();
+                    const normalizedStatus = String(t.status || "").toUpperCase();
+                    const amountValue = Math.abs(Number(t.amount || 0));
+
+                    const creditTypes = new Set(["CREDIT", "EARN", "INITIAL", "INITIAL_ALLOCATION", "REFUND"]);
+                    const isCredit = creditTypes.has(normalizedType);
+                    const typeClass = isCredit ? "transaction-credit" : "transaction-debit";
+                    const amountClass = isCredit ? "amount-credit" : "amount-debit";
+                    const sign = isCredit ? "+" : "-";
+
+                    const typeLabel = {
+                        "CREDIT": "Earned",
+                        "EARN": "Earned",
+                        "DEBIT": "Spent",
+                        "SPEND": "Spent",
+                        "INITIAL": "Initial Allocation",
+                        "INITIAL_ALLOCATION": "Initial Allocation",
+                        "REFUND": "Refunded"
+                    }[normalizedType] || normalizedType;
+
+                    const statusBadge = {
+                        "COMPLETED": '<span class="badge bg-success">COMPLETED</span>',
+                        "FAILED": '<span class="badge bg-danger">FAILED</span>',
+                        "ROLLED_BACK": '<span class="badge bg-warning">ROLLED BACK</span>',
+                        "INITIATED": '<span class="badge bg-info">PENDING</span>'
+                    }[normalizedStatus] || `<span class="badge bg-secondary">${normalizedStatus || "UNKNOWN"}</span>`;
+
+                    const timestamp = new Date(t.timestamp).toLocaleString();
+                    const sessionLink = t.session_id 
+                        ? `<a href="/static/sessions.html" class="text-decoration-none">Session #${t.session_id}</a>` 
+                        : "System";
+
+                    return `
+                        <div class="transaction-item ${typeClass}">
+                            <div class="transaction-header">
+                                <span class="transaction-type">${typeLabel}</span>
+                                <span class="transaction-amount ${amountClass}">${sign}${amountValue} tokens</span>
+                            </div>
+                            <div class="transaction-meta">
+                                <div class="mb-1">${t.description || "No description"}</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small>
+                                        ${sessionLink} • ${timestamp}
+                                    </small>
+                                    ${statusBadge}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+            } catch (error) {
+                console.error("Error loading transactions:", error);
+                document.getElementById("transactionsList").innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load transactions. Please try again.
+                    </div>
+                `;
+            }
+        }
+
+        // ==========================================
+        // LOGOUT
+        // ==========================================
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userName");
+            window.location.href = "/static/login.html";
+        }
+
+        // ==========================================
+        // INITIALIZE
+        // ==========================================
+        document.addEventListener("DOMContentLoaded", () => {
+            loadWallet();
+            loadTransactions();
+        });
+    </script>
+</body>
+</html>

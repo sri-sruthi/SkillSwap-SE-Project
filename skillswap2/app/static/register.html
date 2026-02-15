@@ -67,38 +67,6 @@
             font-size: 1rem;
         }
 
-        .role-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
-            background: #f3f4f6;
-            padding: 8px;
-            border-radius: 15px;
-        }
-
-        .role-btn {
-            padding: 16px;
-            border: 2px solid transparent;
-            background: transparent;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 700;
-            font-size: 1.05rem;
-            color: #6b7280;
-        }
-
-        .role-btn:hover {
-            background: white;
-        }
-
-        .role-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
         .form-group {
             margin-bottom: 22px;
         }
@@ -265,19 +233,15 @@
         <div class="logo-section">
             <div class="logo-icon">🎓</div>
             <h1>SkillSwap</h1>
-            <p>Start your learning journey</p>
+            <p>Join as a student who can both teach and learn</p>
         </div>
 
         <div id="alertBox" class="alert-box"></div>
 
         <form id="registerForm">
-            <div class="role-selector">
-                <button type="button" class="role-btn active" id="mentorBtn">
-                    <i class="fas fa-chalkboard-teacher"></i> Mentor
-                </button>
-                <button type="button" class="role-btn" id="learnerBtn">
-                    <i class="fas fa-user-graduate"></i> Learner
-                </button>
+            <div class="alert-box alert-success show" style="margin-bottom:18px;">
+                <i class="fas fa-info-circle"></i>
+                <span>After signup, add skills you want to teach and skills you want to learn.</span>
             </div>
 
             <!-- Full Name -->
@@ -298,7 +262,7 @@
 
             <!-- Email -->
             <div class="form-group">
-                <label class="form-label" for="email">Email <span class="required-star">*</span></label>
+                <label class="form-label" for="email">University Email <span class="required-star">*</span></label>
                 <div class="input-wrapper">
                     <i class="fas fa-envelope input-icon"></i>
                     <input type="email"
@@ -306,7 +270,7 @@
                            name="email"
                            autocomplete="email"
                            class="form-control"
-                           placeholder="your.email@example.com"
+                           placeholder="your.email@university.edu"
                            required>
                 </div>
                 <div class="error-message" id="emailError">Please enter a valid email</div>
@@ -321,7 +285,7 @@
                            id="password"
                            maxlength="72" 
                            name="password"
-                           autocomplete="current-password"
+                           autocomplete="new-password"
                            minlength="6"
                            class="form-control"
                            placeholder="Minimum 6 characters"
@@ -350,7 +314,7 @@
             </div>
 
             <!-- Learner Fields -->
-            <div id="learnerFields" style="display:none;">
+            <div id="learnerFields">
                 <div class="form-group">
                     <label class="form-label" for="studying">Where are you studying?</label>
                     <div class="input-wrapper">
@@ -391,25 +355,13 @@
 </div>
 
 <script>
-const API_BASE = "http://localhost:8000";
-let selectedRole = "mentor";
+const API_BASE = window.location.origin;
 
-// Role selection
-document.getElementById("mentorBtn").addEventListener("click", () => {
-    selectedRole = "mentor";
-    document.getElementById("mentorBtn").classList.add("active");
-    document.getElementById("learnerBtn").classList.remove("active");
-    document.getElementById("mentorFields").style.display = "block";
-    document.getElementById("learnerFields").style.display = "none";
-});
-
-document.getElementById("learnerBtn").addEventListener("click", () => {
-    selectedRole = "learner";
-    document.getElementById("learnerBtn").classList.add("active");
-    document.getElementById("mentorBtn").classList.remove("active");
-    document.getElementById("mentorFields").style.display = "none";
-    document.getElementById("learnerFields").style.display = "block";
-});
+// Dual-role onboarding: everyone is a student who can both teach and learn.
+const mentorFields = document.getElementById("mentorFields");
+const learnerFields = document.getElementById("learnerFields");
+if (mentorFields) mentorFields.style.display = "block";
+if (learnerFields) learnerFields.style.display = "block";
 
 // Password strength
 document.getElementById("password").addEventListener("input", (e) => {
@@ -470,6 +422,12 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         showAlert("Please fill in all required fields", "danger");
         return;
     }
+
+    const eduEmailPattern = /^[^\s@]+@[^\s@]+\.edu$/i;
+    if (!eduEmailPattern.test(email)) {
+        showAlert("Please use your university .edu email address", "danger");
+        return;
+    }
     
     if (password.length < 6) {
         showAlert("Password must be at least 6 characters", "danger");
@@ -487,25 +445,21 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         name: name,
         email: email,
         password: password,
-        role: selectedRole
+        role: "student"
     };
     
-    // Add role-specific fields
-    if (selectedRole === "mentor") {
-        const qualification = document.getElementById("qualification").value.trim();
-        if (qualification) {
-            requestBody.qualification = qualification;
-        }
-    } else {
-        const studying = document.getElementById("studying").value.trim();
-        const learningGoals = document.getElementById("learningGoals").value.trim();
-        
-        if (studying) {
-            requestBody.studying = studying;
-        }
-        if (learningGoals) {
-            requestBody.learning_goals = learningGoals;
-        }
+    // Optional onboarding hints from both teaching and learning perspectives.
+    const qualification = document.getElementById("qualification").value.trim();
+    const studying = document.getElementById("studying").value.trim();
+    const learningGoals = document.getElementById("learningGoals").value.trim();
+    if (qualification) {
+        requestBody.qualification = qualification;
+    }
+    if (studying) {
+        requestBody.studying = studying;
+    }
+    if (learningGoals) {
+        requestBody.learning_goals = learningGoals;
     }
     
     setLoading(true);

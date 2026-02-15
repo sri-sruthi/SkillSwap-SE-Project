@@ -20,7 +20,12 @@ class User(Base):
     user_skills = relationship("UserSkill", back_populates="user", cascade="all, delete-orphan")
     learner_sessions = relationship("Session", foreign_keys="Session.learner_id", back_populates="learner")
     mentor_sessions = relationship("Session", foreign_keys="Session.mentor_id", back_populates="mentor")
+    
+    # ✅ ADD THESE 4 LINES (Token, Review, Rating relationships)
     wallet = relationship("TokenWallet", back_populates="user", uselist=False)
+    reviews_given = relationship("Review", foreign_keys="Review.learner_id", back_populates="learner")
+    reviews_received = relationship("Review", foreign_keys="Review.mentor_id", back_populates="mentor")
+    mentor_rating = relationship("MentorRating", back_populates="mentor", uselist=False)
 
 
 # ---------------- PROFILE TABLE ----------------
@@ -46,23 +51,3 @@ class UserProfile(Base):
     user = relationship("User", back_populates="profile")
 
 
-# ---------------- TOKEN WALLET ----------------
-class TokenWallet(Base):
-    __tablename__ = "token_wallets"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(
-        Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
-        unique=True,
-        nullable=False
-    )
-    balance = Column(Integer, default=0)
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(
-        TIMESTAMP,
-        server_default=func.now(),
-        onupdate=func.now()
-    )
-
-    user = relationship("User", back_populates="wallet")

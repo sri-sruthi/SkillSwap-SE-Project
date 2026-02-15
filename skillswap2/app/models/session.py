@@ -20,3 +20,5 @@ class Session(Base):
     learner = relationship("User", foreign_keys=[learner_id], back_populates="learner_sessions")
     mentor = relationship("User", foreign_keys=[mentor_id], back_populates="mentor_sessions")
     skill = relationship("Skill", back_populates="sessions")  # ✅ This now works
+    # ✅ ADD THIS LINE
+    review = relationship("Review", back_populates="session", uselist=False)

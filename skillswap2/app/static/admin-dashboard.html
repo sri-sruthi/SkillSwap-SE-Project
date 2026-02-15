@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - SkillSwap</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #e2e8f0;
+    }
+    .wrapper {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .panel {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(4px);
+    }
+    .title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="panel">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h1 class="title">Admin Dashboard</h1>
+          <p class="subtitle mb-0">Admin login is enabled. Full admin module can be merged next.</p>
+        </div>
+        <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+      </div>
+      <hr class="border-light border-opacity-25 my-4">
+      <p>This is a temporary dashboard placeholder. Current available admin capability in this patch is authentication and role-based access entry.</p>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-light" href="/debug/routes">View API Routes</a>
+        <a class="btn btn-outline-light" href="/static/index.html">Go to Landing</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const role = (localStorage.getItem("role") || "").toLowerCase();
+
+    if (!token || role !== "admin") {
+      window.location.href = "/admin/login";
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "/admin/login";
+    }
+  </script>
+</body>
+</html>

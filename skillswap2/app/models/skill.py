@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, ARRAY, func
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, ARRAY, JSON, func
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -33,7 +33,8 @@ class UserSkill(Base):
     )
     skill_type = Column(String(20), nullable=False)  # 'teach' or 'learn'
     proficiency_level = Column(String(20))
-    tags = Column(ARRAY(String), default=[])
+    # SQLite (used by tests) does not support ARRAY; store as JSON there.
+    tags = Column(ARRAY(String).with_variant(JSON, "sqlite"), default=list)
     created_at = Column(TIMESTAMP, server_default=func.now())
     
     # Relationships

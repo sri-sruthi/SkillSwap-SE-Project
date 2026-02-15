@@ -8,7 +8,9 @@ from typing import Optional
 class Token(BaseModel):
     access_token: str
     token_type: str
-    role: str  # Critical for frontend role-based redirects
+    # Canonical runtime roles are "student" and "admin".
+    # Legacy values may still appear in old tokens during migration windows.
+    role: str
 
 class TokenData(BaseModel):
     email: Optional[str] = None
@@ -27,7 +29,8 @@ class UserRegister(BaseModel):
     name: str  # Full name at registration
     email: EmailStr
     password: str
-    role: str  # "mentor" or "learner"
+    # Dual-role default. API canonicalizes legacy mentor/learner input to student.
+    role: Optional[str] = "student"
 
 # ======================
 # MENTOR-SPECIFIC REGISTRATION

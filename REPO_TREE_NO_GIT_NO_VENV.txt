@@ -1,0 +1,232 @@
+/Users/srisruthi/Downloads/SkillSwap-SE-Project
+├── skillswap2
+│   ├── .pytest_cache
+│   │   ├── v
+│   │   │   └── cache
+│   │   │       ├── lastfailed
+│   │   │       ├── nodeids
+│   │   │       └── stepwise
+│   │   ├── .gitignore
+│   │   ├── CACHEDIR.TAG
+│   │   └── README.md
+│   ├── alembic
+│   │   ├── __pycache__
+│   │   │   └── env.cpython-312.pyc
+│   │   ├── versions
+│   │   │   ├── __pycache__
+│   │   │   │   ├── 1c127880d416_add_token_review_and_recommendation_.cpython-312.pyc
+│   │   │   │   └── 55181126a280_add_token_review_and_recommendation_.cpython-312.pyc
+│   │   │   └── 1c127880d416_add_token_review_and_recommendation_.py
+│   │   ├── env.py
+│   │   ├── README
+│   │   └── script.py.mako
+│   ├── app
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── config.cpython-312.pyc
+│   │   │   ├── config.cpython-313.pyc
+│   │   │   ├── database.cpython-312.pyc
+│   │   │   ├── database.cpython-313.pyc
+│   │   │   ├── main.cpython-312.pyc
+│   │   │   └── main.cpython-313.pyc
+│   │   ├── api
+│   │   │   ├── __pycache__
+│   │   │   │   ├── ___init__.cpython-312.pyc
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── auth.cpython-312.pyc
+│   │   │   │   ├── auth.cpython-313.pyc
+│   │   │   │   ├── mentor.cpython-312.pyc
+│   │   │   │   ├── mentor.cpython-313.pyc
+│   │   │   │   ├── notification.cpython-312.pyc
+│   │   │   │   ├── recommendation.cpython-312.pyc
+│   │   │   │   ├── review.cpython-312.pyc
+│   │   │   │   ├── search.cpython-312.pyc
+│   │   │   │   ├── search.cpython-313.pyc
+│   │   │   │   ├── session.cpython-312.pyc
+│   │   │   │   ├── session.cpython-313.pyc
+│   │   │   │   ├── skill.cpython-312.pyc
+│   │   │   │   ├── skill.cpython-313.pyc
+│   │   │   │   ├── token.cpython-312.pyc
+│   │   │   │   ├── users.cpython-312.pyc
+│   │   │   │   └── users.cpython-313.pyc
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── mentor.py
+│   │   │   ├── notification.py
+│   │   │   ├── recommendation.py
+│   │   │   ├── review.py
+│   │   │   ├── search.py
+│   │   │   ├── session.py
+│   │   │   ├── skill.py
+│   │   │   ├── token.py
+│   │   │   └── users.py
+│   │   ├── crud
+│   │   │   ├── __pycache__
+│   │   │   │   ├── ___init__.cpython-312.pyc
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── review.cpython-312.pyc
+│   │   │   │   ├── search.cpython-312.pyc
+│   │   │   │   ├── session.cpython-312.pyc
+│   │   │   │   ├── skill.cpython-312.pyc
+│   │   │   │   ├── token.cpython-312.pyc
+│   │   │   │   ├── user.cpython-312.pyc
+│   │   │   │   └── user.cpython-313.pyc
+│   │   │   ├── __init__.py
+│   │   │   ├── review.py
+│   │   │   ├── search.py
+│   │   │   ├── session.py
+│   │   │   ├── skill.py
+│   │   │   ├── token.py
+│   │   │   └── user.py
+│   │   ├── ml
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── recommender.cpython-312.pyc
+│   │   │   │   └── vectorizer.cpython-312.pyc
+│   │   │   ├── __init__.py
+│   │   │   ├── recommender.py
+│   │   │   └── vectorizer.py
+│   │   ├── models
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── __init__.cpython-313.pyc
+│   │   │   │   ├── notification.cpython-312.pyc
+│   │   │   │   ├── recommendation.cpython-312.pyc
+│   │   │   │   ├── review.cpython-312.pyc
+│   │   │   │   ├── search.cpython-312.pyc
+│   │   │   │   ├── session.cpython-312.pyc
+│   │   │   │   ├── session.cpython-313.pyc
+│   │   │   │   ├── skill.cpython-312.pyc
+│   │   │   │   ├── skill.cpython-313.pyc
+│   │   │   │   ├── token.cpython-312.pyc
+│   │   │   │   ├── user.cpython-312.pyc
+│   │   │   │   └── user.cpython-313.pyc
+│   │   │   ├── __init__.py
+│   │   │   ├── notification.py
+│   │   │   ├── recommendation.py
+│   │   │   ├── review.py
+│   │   │   ├── search.py
+│   │   │   ├── session.py
+│   │   │   ├── skill.py
+│   │   │   ├── token.py
+│   │   │   └── user.py
+│   │   ├── schemas
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── __init__.cpython-313.pyc
+│   │   │   │   ├── auth.cpython-312.pyc
+│   │   │   │   ├── auth.cpython-313.pyc
+│   │   │   │   ├── recommendation.cpython-312.pyc
+│   │   │   │   ├── review.cpython-312.pyc
+│   │   │   │   ├── search.cpython-312.pyc
+│   │   │   │   ├── search.cpython-313.pyc
+│   │   │   │   ├── session.cpython-312.pyc
+│   │   │   │   ├── skill.cpython-312.pyc
+│   │   │   │   ├── skill.cpython-313.pyc
+│   │   │   │   ├── token.cpython-312.pyc
+│   │   │   │   ├── user.cpython-312.pyc
+│   │   │   │   └── user.cpython-313.pyc
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── recommendation.py
+│   │   │   ├── review.py
+│   │   │   ├── search.py
+│   │   │   ├── session.py
+│   │   │   ├── skill.py
+│   │   │   ├── token.py
+│   │   │   └── user.py
+│   │   ├── scripts
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   └── bootstrap_admin.cpython-312.pyc
+│   │   │   ├── __init__.py
+│   │   │   └── bootstrap_admin.py
+│   │   ├── services
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── review_service.cpython-312.pyc
+│   │   │   │   ├── session_token_integration.cpython-312.pyc
+│   │   │   │   └── token_service.cpython-312.pyc
+│   │   │   ├── __init__.py
+│   │   │   ├── review_service.py
+│   │   │   ├── session_token_integration.py
+│   │   │   └── token_service.py
+│   │   ├── static
+│   │   │   ├── add-learning-skill.html
+│   │   │   ├── add-skill.html
+│   │   │   ├── admin-dashboard.html
+│   │   │   ├── admin-login.html
+│   │   │   ├── edit-profile.html
+│   │   │   ├── index.html
+│   │   │   ├── learners-session.html
+│   │   │   ├── login.html
+│   │   │   ├── mentor-profile.html
+│   │   │   ├── mentors.html
+│   │   │   ├── recommendations.html
+│   │   │   ├── register.html
+│   │   │   ├── review-form.html
+│   │   │   ├── search.html
+│   │   │   ├── sessions.html
+│   │   │   └── token-wallet.html
+│   │   ├── utils
+│   │   │   ├── __pycache__
+│   │   │   │   ├── ___init__.cpython-312.pyc
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── email.cpython-312.pyc
+│   │   │   │   ├── security.cpython-312.pyc
+│   │   │   │   └── security.cpython-313.pyc
+│   │   │   ├── __init__.py
+│   │   │   ├── email.py
+│   │   │   └── security.py
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   └── main.py
+│   ├── skillswap2
+│   │   └── app
+│   ├── tests
+│   │   ├── __pycache__
+│   │   │   ├── conftest.cpython-312-pytest-7.4.4.pyc
+│   │   │   ├── conftest.cpython-312-pytest-9.0.2.pyc
+│   │   │   ├── conftest.cpython-312.pyc
+│   │   │   ├── seed_phase6_bulk_profiles.cpython-312.pyc
+│   │   │   ├── test_dual_role_api_workflow.cpython-312.pyc
+│   │   │   ├── test_phase2_token_rewards.cpython-312.pyc
+│   │   │   ├── test_phase3_api_workflow.cpython-312.pyc
+│   │   │   ├── test_phase4_reviews.cpython-312-pytest-7.4.4.pyc
+│   │   │   ├── test_phase4_reviews.cpython-312-pytest-9.0.2.pyc
+│   │   │   ├── test_phase4_reviews.cpython-312.pyc
+│   │   │   ├── test_phase5_api_workflow.cpython-312.pyc
+│   │   │   ├── test_phase6_api_workflow.cpython-312.pyc
+│   │   │   ├── test_step22_skill_alias_dedupe.cpython-312-pytest-7.4.4.pyc
+│   │   │   ├── test_step22_skill_alias_dedupe.cpython-312-pytest-9.0.2.pyc
+│   │   │   └── test_step22_skill_alias_dedupe.cpython-312.pyc
+│   │   ├── conftest.py
+│   │   ├── phase6_seed_data.sql
+│   │   ├── PHASE6_TESTING.md
+│   │   ├── seed_phase6_bulk_profiles.py
+│   │   ├── test_dual_role_api_workflow.py
+│   │   ├── test_phase2_token_rewards.py
+│   │   ├── test_phase3_api_workflow.py
+│   │   ├── test_phase4_reviews.py
+│   │   ├── test_phase5_api_workflow.py
+│   │   ├── test_phase6_api_workflow.py
+│   │   ├── TEST_RUNBOOK.txt
+│   │   └── test_step22_skill_alias_dedupe.py
+│   ├── .env
+│   ├── alembic.ini
+│   ├── DUAL_ROLE_MIGRATION_HANDOFF.md
+│   ├── requirements.txt
+│   └── setup.py
+├── .gitignore
+├── FULL_CODE_DUMP.md
+├── LICENSE
+├── MEMBER_D_HANDOVER.md
+├── MEMBER_D_MASTER_PROMPT.md
+├── README.md
+├── REPO_TREE_CLEAN.txt
+├── REPO_TREE_CURRENT.txt
+├── REPO_TREE_FULL.txt
+├── REPO_TREE_NO_GIT_NO_VENV.txt
+└── SE Common Product Logs Doc.pdf

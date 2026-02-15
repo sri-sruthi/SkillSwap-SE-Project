@@ -11,9 +11,12 @@ setup(
         "psycopg2-binary",
         "python-jose[cryptography]",
         "passlib[bcrypt]",
+        "bcrypt==4.0.1",
         "python-multipart",
         "pydantic[email]",  # Changed this line - added [email]
         "python-dotenv",
-        "alembic"
+        "alembic",
+        "numpy",
+        "scikit-learn",
     ],
 )

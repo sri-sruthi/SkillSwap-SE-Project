@@ -65,6 +65,27 @@
       margin-bottom: 30px;
       color: white;
     }
+    .view-tabs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+    .view-tab-btn {
+      border: 2px solid #d1d5db;
+      background: white;
+      color: #374151;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .view-tab-btn.active {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
     .back-button {
       margin-bottom: 20px;
     }
@@ -142,6 +163,49 @@
     .request-btn:hover {
       background: linear-gradient(135deg, #5a67d8, #6b5ca9);
     }
+    .mentor-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .profile-btn {
+      border: 2px solid #667eea;
+      color: #667eea;
+      background: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .profile-btn:hover {
+      background: #667eea;
+      color: white;
+    }
+    .ai-metrics {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 12px 0 8px;
+    }
+    .metric-pill {
+      background: #eef2ff;
+      color: #4338ca;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+    .explanation-box {
+      margin-top: 10px;
+      background: #f8fafc;
+      border-left: 3px solid #667eea;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #334155;
+      font-size: 0.92rem;
+    }
     .no-mentors {
       text-align: center;
       color: white;
@@ -215,6 +279,15 @@
     <p id="skillSubtitle">Connect with experts in your field of interest</p>
   </div>
 
+  <div class="view-tabs" id="viewTabs">
+    <button id="manualTabBtn" class="view-tab-btn active" onclick="switchMentorView('manual')">
+      Manual View (All Mentors)
+    </button>
+    <button id="aiTabBtn" class="view-tab-btn" onclick="switchMentorView('ai')">
+      AI Ranked (Best Matches)
+    </button>
+  </div>
+
   <div id="mentorsContainer">
     <!-- Mentors will be loaded here -->
     <div class="text-center py-5">
@@ -276,7 +349,7 @@
     </div>
     
     <div class="d-flex gap-2">
-      <button class="btn btn-primary w-100" onclick="submitSessionRequest()">
+      <button id="submitSessionRequestBtn" class="btn btn-primary w-100" onclick="submitSessionRequest()">
         <i class="fas fa-paper-plane me-2"></i> Request Session
       </button>
     </div>
@@ -284,9 +357,20 @@
 </div>
 
 <script>
-const API_BASE = "http://localhost:8000";
+const API_BASE = window.location.origin;
 let token = localStorage.getItem("token");
-let role = localStorage.getItem("role");
+let role = (localStorage.getItem("role") || "").toLowerCase();
+let canLearn = false;
+let currentMentorView = "manual";
+let manualMentors = [];
+let aiMentors = [];
+let mentorDetailsByUserId = {};
+const AI_TOP_N = 10;
+let isSubmittingSessionRequest = false;
+
+function normalizeRole(value) {
+  return String(value || "").trim().toLowerCase();
+}
 
 // ✅ Critical: Validate URL parameters IMMEDIATELY (no setTimeout)
 (function() {
@@ -316,7 +400,7 @@ let role = localStorage.getItem("role");
 })();
 
 // Check authentication
-if (!token || !role) {
+if (!token) {
   alert("Please login first!");
   window.location.href = "/static/login.html";
 }
@@ -338,16 +422,26 @@ async function init() {
     }
     
     const data = await res.json();
+    role = normalizeRole(data.role || role);
+    localStorage.setItem("role", role);
+    canLearn = Boolean(data.can_learn);
+    if (role !== "admin" && !canLearn) {
+      // New users may not have skill mappings yet; keep learner discovery available.
+      canLearn = true;
+    }
     document.getElementById("navName").textContent = data.full_name || data.name || "User";
-    document.getElementById("navAvatar").textContent = role === "mentor" ? "👨‍🏫" : "👤";
+    document.getElementById("navAvatar").textContent = canLearn ? "🧑‍🎓" : "👨‍🏫";
 
-    if (role !== "learner") {
-      alert("Only learners can view mentors and request sessions.");
-      window.location.href = "/static/sessions.html";
-      return;
+    if (!canLearn) {
+      const aiBtn = document.getElementById("aiTabBtn");
+      aiBtn.disabled = true;
+      aiBtn.textContent = "AI Ranked (Add Learning Skill)";
+      aiBtn.style.opacity = "0.6";
+      aiBtn.style.cursor = "not-allowed";
     }
 
-    loadMentors();
+    await loadHybridMentorData();
+    switchMentorView("manual");
   } catch (error) {
     console.error("Init error:", error);
     alert("Session expired. Please log in again.");
@@ -355,32 +449,74 @@ async function init() {
   }
 }
 
-async function loadMentors() {
+async function loadHybridMentorData() {
   const skillId = window.currentSkillId;
   try {
-    const res = await fetch(`${API_BASE}/search/mentors/${skillId}`, {
+    const manualRes = await fetch(`${API_BASE}/search/mentors/${skillId}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
-    if (!res.ok) {
-      if (res.status === 404) {
-        document.getElementById("mentorsContainer").innerHTML = 
-          `<div class="no-mentors">No mentors found for "${window.currentSkillName}".<br><a href="/static/search.html" style="color:white; text-decoration:underline;">Browse other skills</a></div>`;
-        return;
-      }
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    if (!manualRes.ok) {
+      throw new Error(`Manual mentors fetch failed: HTTP ${manualRes.status}`);
     }
 
-    const mentors = await res.json();
-    renderMentors(mentors);
+    manualMentors = await manualRes.json();
+    mentorDetailsByUserId = {};
+    manualMentors.forEach((mentor) => {
+      mentorDetailsByUserId[mentor.user_id] = mentor;
+    });
+
+    if (canLearn) {
+      try {
+        let aiRes = await fetch(`${API_BASE}/recommend/by-skill/${skillId}?top_n=${AI_TOP_N}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        // Defensive fallback in case backend validation changes.
+        if (aiRes.status === 422) {
+          aiRes = await fetch(`${API_BASE}/recommend/by-skill/${skillId}?top_n=10`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+        }
+        if (aiRes.ok) {
+          aiMentors = await aiRes.json();
+        } else {
+          aiMentors = [];
+          console.warn(`AI recommendations unavailable: HTTP ${aiRes.status}`);
+        }
+      } catch (aiErr) {
+        aiMentors = [];
+        console.warn("AI recommendations fetch failed:", aiErr);
+      }
+    } else {
+      aiMentors = [];
+    }
   } catch (error) {
     console.error("Load mentors error:", error);
-    document.getElementById("mentorsContainer").innerHTML = 
-      `<div class="no-mentors">Failed to load mentors. Please try again.<br><button class="btn btn-light mt-3" onclick="loadMentors()">Retry</button></div>`;
+    manualMentors = [];
+    aiMentors = [];
+    mentorDetailsByUserId = {};
+    renderCurrentMentorView();
+    return;
   }
 }
 
-function renderMentors(mentors) {
+function switchMentorView(view) {
+  if (view === "ai" && !canLearn) return;
+  currentMentorView = view;
+  document.getElementById("manualTabBtn").classList.toggle("active", view === "manual");
+  document.getElementById("aiTabBtn").classList.toggle("active", view === "ai");
+  renderCurrentMentorView();
+}
+
+function renderCurrentMentorView() {
+  if (currentMentorView === "ai") {
+    renderAiMentors(aiMentors);
+  } else {
+    renderManualMentors(manualMentors);
+  }
+}
+
+function renderManualMentors(mentors) {
   const container = document.getElementById("mentorsContainer");
   
   if (!mentors || mentors.length === 0) {
@@ -418,12 +554,89 @@ function renderMentors(mentors) {
             <span class="detail-value">${mentor.experience} years</span>
           </div>
           ` : ''}
+          <div class="detail-row">
+            <span class="detail-label">Rating:</span>
+            <span class="detail-value">${mentor.rating ? `⭐ ${mentor.rating}` : "New mentor"}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Sessions:</span>
+            <span class="detail-value">${mentor.session_count || 0} completed</span>
+          </div>
         </div>
         
-        <button class="request-btn" 
-                onclick="showSessionModal(${mentor.user_id}, '${mentor.mentor_name.replace(/'/g, "\\'")}');">
-          <i class="fas fa-calendar-plus"></i> Request Session
-        </button>
+        <div class="mentor-actions">
+          <button class="request-btn" 
+                  onclick="showSessionModal(${mentor.user_id}, '${mentor.mentor_name.replace(/'/g, "\\'")}');">
+            <i class="fas fa-calendar-plus"></i> Request Session
+          </button>
+          <button class="profile-btn" onclick="viewMentorProfile(${mentor.user_id}, '${(mentor.mentor_name || '').replace(/'/g, "\\'")}')">
+            <i class="fas fa-user"></i> View Profile
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAiMentors(recommendations) {
+  const container = document.getElementById("mentorsContainer");
+
+  if (!recommendations || recommendations.length === 0) {
+    document.getElementById("mentorsContainer").innerHTML = 
+      `<div class="no-mentors">
+        No AI-ranked mentors found for "${window.currentSkillName}".<br>
+        This usually means your account has no learning-skill signal yet.<br><br>
+        <a href="/static/add-skill.html?type=learn" class="btn btn-light">Add Learning Skills</a>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = recommendations.map(rec => {
+    const details = mentorDetailsByUserId[rec.mentor_id] || {};
+    const firstName = rec.mentor_name?.split(' ')[0] || 'M';
+    const avatarLetter = firstName.charAt(0).toUpperCase();
+
+    return `
+      <div class="mentor-card">
+        <div class="mentor-header">
+          <div class="mentor-avatar">${avatarLetter}</div>
+          <div class="mentor-info">
+            <h3 class="mentor-name">${rec.mentor_name || 'Unknown'}</h3>
+            <div class="mentor-qualification">${details.qualification || "Qualified Mentor"}</div>
+          </div>
+        </div>
+
+        <div class="ai-metrics">
+          <span class="metric-pill">Rank #${rec.rank}</span>
+          <span class="metric-pill">Compatibility ${(rec.compatibility_score * 100).toFixed(0)}%</span>
+          <span class="metric-pill">Skill Match ${(rec.similarity_score * 100).toFixed(0)}%</span>
+          <span class="metric-pill">${rec.rating !== null ? `⭐ ${rec.rating.toFixed(1)}` : "New Mentor"}</span>
+        </div>
+
+        <div class="mentor-details">
+          <div class="detail-row">
+            <span class="detail-label">Expertise:</span>
+            <span class="detail-value">${window.currentSkillName}</span>
+          </div>
+          ${details.experience ? `
+          <div class="detail-row">
+            <span class="detail-label">Experience:</span>
+            <span class="detail-value">${details.experience} years</span>
+          </div>
+          ` : ''}
+        </div>
+
+        ${rec.explanation ? `<div class="explanation-box">💡 ${rec.explanation}</div>` : ""}
+        
+        <div class="mentor-actions">
+          <button class="request-btn" 
+                  onclick="showSessionModal(${rec.mentor_id}, '${rec.mentor_name.replace(/'/g, "\\'")}');">
+            <i class="fas fa-calendar-plus"></i> Request Session
+          </button>
+          <button class="profile-btn" onclick="viewMentorProfile(${rec.mentor_id}, '${(rec.mentor_name || '').replace(/'/g, "\\'")}')">
+            <i class="fas fa-user"></i> View Profile
+          </button>
+        </div>
       </div>
     `;
   }).join('');
@@ -444,6 +657,8 @@ function closeSessionModal() {
 }
 
 async function submitSessionRequest() {
+  if (isSubmittingSessionRequest) return;
+
   const mentorId = document.getElementById("selectedMentorId").value;
   const skillId = document.getElementById("selectedSkillId").value;
   const date = document.getElementById("sessionDate").value;
@@ -465,15 +680,23 @@ async function submitSessionRequest() {
   }
 
   const scheduled_time = `${date}T${time}`;
+  const submitBtn = document.getElementById("submitSessionRequestBtn");
+  const originalBtnHtml = submitBtn ? submitBtn.innerHTML : "";
 
   try {
+    isSubmittingSessionRequest = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i> Sending...`;
+    }
+
     const formData = new FormData();
     formData.append("mentor_id", mentorId);
     formData.append("skill_id", skillId);
     formData.append("scheduled_time", scheduled_time);
     formData.append("notes", notes);
 
-    const res = await fetch(`${API_BASE}/sessions/`, {
+    const res = await fetch(`${API_BASE}/sessions/request`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}` },
       body: formData
@@ -487,17 +710,30 @@ async function submitSessionRequest() {
     alert("✅ Session request sent successfully!");
     closeSessionModal();
     
-    // ✅ CORRECT REDIRECT FOR LEARNERS:
-    window.location.href = "/static/learners-session.html";
+    window.location.href = "/static/sessions.html";
     
   } catch (error) {
     console.error("Session request error:", error);
     alert(`❌ ${error.message}`);
+  } finally {
+    isSubmittingSessionRequest = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHtml;
+    }
   }
 }
 
 function goBack() {
   window.location.href = "/static/search.html";
+}
+function viewMentorProfile(mentorId, mentorName = "") {
+  const params = new URLSearchParams();
+  params.set("mentor_id", mentorId);
+  if (mentorName && mentorName.trim()) {
+    params.set("mentor_name", mentorName.trim());
+  }
+  window.location.href = `/static/mentor-profile.html?${params.toString()}`;
 }
 function toggleProfile() {
   window.location.href = "/static/edit-profile.html";

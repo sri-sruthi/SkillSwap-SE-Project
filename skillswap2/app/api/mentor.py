@@ -91,8 +91,8 @@ async def register(
         )
         db.add(profile)
         
-        # 6. Initialize Wallet
-        wallet = models.TokenWallet(user_id=new_user.id, balance=100)
+        # 6. Initialize Wallet (20 tokens)
+        wallet = models.TokenWallet(user_id=new_user.id, balance=20)
         db.add(wallet)
         
         db.commit()

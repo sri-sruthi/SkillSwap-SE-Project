@@ -129,11 +129,14 @@
   <p class="register-link">
     Don't have an account? <a href="/static/register.html">Register here</a>
   </p>
+  <p class="register-link" style="margin-top:8px;">
+    Admin? <a href="/admin/login">Login here</a>
+  </p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script>
-const API_BASE = "http://localhost:8000";
+const API_BASE = window.location.origin;
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -181,11 +184,11 @@ try {
     
     // Save auth data
     localStorage.setItem("token", data.access_token);
-    localStorage.setItem("role", data.role);
+    localStorage.setItem("role", (data.role || "").toLowerCase());
     
-    // Role-based redirect
-    if (data.role === "mentor") {
-      window.location.href = "/static/search.html";
+    // Redirect by privilege only; non-admin users share dual-role flow.
+    if ((data.role || "").toLowerCase() === "admin") {
+      window.location.href = "/admin/dashboard";
     } else {
       window.location.href = "/static/search.html";
     }

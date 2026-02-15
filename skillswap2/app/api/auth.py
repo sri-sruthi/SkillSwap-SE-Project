@@ -5,6 +5,7 @@ from app import models
 from app.utils.security import get_password_hash, verify_password, create_access_token
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
+import re
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -15,7 +16,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     # Bcrypt limit is 72 bytes; max_length=72 prevents the "password too long" crash
     password: str = Field(..., min_length=6, max_length=72)
-    role: str
+    role: Optional[str] = "student"
     qualification: Optional[str] = None
     studying: Optional[str] = None
     learning_goals: Optional[str] = None
@@ -29,15 +30,29 @@ class Token(BaseModel):
     token_type: str
     role: str
 
+
+def is_edu_email(email: str) -> bool:
+    return bool(re.match(r"^[^@\s]+@[^@\s]+\.edu$", email.strip().lower()))
+
 # ===== REGISTER ENDPOINT =====
 
 @router.post("/register")
 async def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
     """Register new user and create associated profile"""
-    if user_data.role not in ["mentor", "learner"]:
-        raise HTTPException(status_code=400, detail="Role must be 'mentor' or 'learner'")
+    requested_role = (user_data.role or "student").strip().lower()
+    if requested_role not in {"student", "mentor", "learner"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Role must be one of: student, mentor, learner"
+        )
+    # Canonicalize end-user accounts to a single dual-role role.
+    canonical_role = "student"
+
+    normalized_email = user_data.email.strip().lower()
+    if not is_edu_email(normalized_email):
+        raise HTTPException(status_code=400, detail="Only .edu email addresses are allowed")
     
-    existing = db.query(models.User).filter(models.User.email == user_data.email).first()
+    existing = db.query(models.User).filter(models.User.email == normalized_email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
@@ -47,9 +62,9 @@ async def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
         
         new_user = models.User(
             name=user_data.name,
-            email=user_data.email,
+            email=normalized_email,
             password_hash=password_hash,
-            role=user_data.role,
+            role=canonical_role,
             is_active=True
         )
         db.add(new_user)
@@ -58,14 +73,14 @@ async def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
         profile = models.UserProfile(
             user_id=new_user.id,
             full_name=user_data.name,
-            qualification=user_data.qualification if user_data.role == "mentor" else None,
-            studying=user_data.studying if user_data.role == "learner" else None,
-            bio=user_data.learning_goals if user_data.role == "learner" else None
+            qualification=user_data.qualification,
+            studying=user_data.studying,
+            bio=user_data.learning_goals
         )
         db.add(profile)
         
-        # Initialize wallet with default balance
-        wallet = models.TokenWallet(user_id=new_user.id, balance=100)
+        # Initialize wallet with configured initial allocation policy (20 tokens).
+        wallet = models.TokenWallet(user_id=new_user.id, balance=20)
         db.add(wallet)
         
         db.commit()
@@ -81,13 +96,35 @@ async def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
 @router.post("/login", response_model=Token)
 async def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     """Verify credentials and return access token"""
-    user = db.query(models.User).filter(models.User.email == credentials.email).first()
+    user = db.query(models.User).filter(
+        models.User.email == credentials.email.strip().lower()
+    ).first()
     
     if not user or not verify_password(credentials.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     access_token = create_access_token(data={"sub": user.email, "role": user.role})
     
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": user.role
+    }
+
+
+@router.post("/admin/login", response_model=Token)
+async def admin_login(credentials: LoginRequest, db: Session = Depends(get_db)):
+    """Login endpoint restricted to admin accounts only."""
+    normalized_email = credentials.email.strip().lower()
+    user = db.query(models.User).filter(models.User.email == normalized_email).first()
+
+    if not user or not verify_password(credentials.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+    if (user.role or "").lower() != "admin":
+        raise HTTPException(status_code=403, detail="Admin access only")
+
+    access_token = create_access_token(data={"sub": user.email, "role": user.role})
     return {
         "access_token": access_token,
         "token_type": "bearer",

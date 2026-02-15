@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommended Mentors - SkillSwap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-main {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .recommendation-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .mentor-header {
+            margin-left: 70px;
+            margin-bottom: 20px;
+        }
+
+        .mentor-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .mentor-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .stat-label {
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .rating-display {
+            color: #fbbf24;
+            font-weight: 700;
+        }
+
+        .compatibility-bar {
+            margin: 20px 0;
+        }
+
+        .compatibility-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .progress {
+            height: 25px;
+            border-radius: 10px;
+            background: #e5e7eb;
+        }
+
+        .progress-bar {
+            border-radius: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .explanation {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+        }
+
+        .explanation-text {
+            color: #374151;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .session-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+            padding: 16px;
+        }
+        .session-modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        }
+        .session-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .session-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        .session-modal .input-group-text {
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        .session-modal .form-control {
+            border: 1px solid #e2e8f0 !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <div class="top-nav">
+        <div style="font-size: 1.2rem; font-weight: 700;">🎯 AI-Powered Recommendations</div>
+        <div>
+            <a href="/static/search.html" class="btn btn-outline-secondary btn-sm me-2">Manual Search</a>
+            <a href="/static/sessions.html" class="btn btn-primary btn-sm">My Sessions</a>
+        </div>
+    </div>
+
+    <div class="container-main">
+        <h1 class="page-title">Recommended Mentors For You</h1>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">Filter by Skill (Optional)</label>
+                    <select class="form-select" id="skillFilter">
+                        <option value="">All Skills</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Number of Results</label>
+                    <select class="form-select" id="topNFilter">
+                        <option value="5" selected>Top 5</option>
+                        <option value="10">Top 10</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary mt-3" onclick="loadRecommendations()">
+                🔄 Refresh Recommendations
+            </button>
+        </div>
+
+        <!-- Recommendations List -->
+        <div id="recommendationsList">
+            <div class="loading-spinner">
+                <div class="spinner-border text-light" role="status" style="width: 4rem; height: 4rem;">
+                    <span class="visually-hidden">Loading recommendations...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sessionRequestModal" class="session-modal">
+        <div class="session-modal-content">
+            <div class="session-modal-header">
+                <h3 class="m-0">Request Session with <span id="requestMentorName"></span></h3>
+                <button type="button" class="session-modal-close" onclick="closeSessionRequestModal()">×</button>
+            </div>
+
+            <input type="hidden" id="requestMentorId">
+
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-3">📅 Preferred Date & Time</h5>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0">Date</span>
+                    <input type="date" class="form-control border-end-0" id="requestDate" required>
+                </div>
+                <div class="input-group mt-2">
+                    <span class="input-group-text bg-light border-0">Time</span>
+                    <input type="time" class="form-control" id="requestTime" required>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    Select a date and time that works for you. The mentor will confirm availability.
+                </small>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-3">📚 Choose Skill from Mentor's Teaching List</h5>
+                <select class="form-select" id="requestSkillSelect" required>
+                    <option value="">Select a skill</option>
+                </select>
+                <small id="requestSkillHelp" class="text-muted d-block mt-2">
+                    Select one skill this mentor teaches.
+                </small>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-3">🎯 What would you like to learn?</h5>
+                <textarea
+                    class="form-control"
+                    id="requestNotes"
+                    rows="4"
+                    placeholder="e.g., 'I want to learn Python OOP, decorators, and async/await'"
+                    required
+                ></textarea>
+                <small class="text-muted d-block mt-2">
+                    Be specific — this helps the mentor prepare the session.
+                </small>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button id="submitRecommendationRequestBtn" class="btn btn-primary w-100" onclick="submitRecommendationSessionRequest()">Request Session</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let allSkillsForRequest = [];
+        let mentorTeachingSkillsById = {};
+        let isSubmittingRecommendationRequest = false;
+
+        function escapeAttr(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadSkills();
+            await loadRecommendations();
+
+            document.getElementById("skillFilter").addEventListener("change", loadRecommendations);
+            document.getElementById("topNFilter").addEventListener("change", loadRecommendations);
+        });
+
+        // ==========================================
+        // LOAD SKILLS FOR FILTER
+        // ==========================================
+        async function loadSkills() {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`${API_BASE}/skills/`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to load skills for filtering");
+                }
+
+                const skills = await response.json();
+                const selectEl = document.getElementById("skillFilter");
+
+                // API currently returns skill `name` (not `title`), keep both for compatibility.
+                const normalized = skills
+                    .map(skill => ({
+                        id: skill.id,
+                        label: skill.name || skill.title || "",
+                        mentorCount: Number(skill.mentor_count || 0),
+                    }))
+                    .filter(skill => skill.id && skill.label);
+
+                // Use complete skill list for session booking.
+                allSkillsForRequest = normalized;
+
+                // Keep mentor-available subset only for recommendation filtering.
+                const filterSkills = normalized.filter(skill => skill.mentorCount > 0);
+                filterSkills.forEach(skill => {
+                    const option = document.createElement("option");
+                    option.value = skill.id;
+                    option.textContent = `${skill.label} (${skill.mentorCount} mentors)`;
+                    selectEl.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error loading skills:", error);
+            }
+        }
+
+        // ==========================================
+        // LOAD RECOMMENDATIONS
+        // ==========================================
+        async function loadRecommendations() {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    window.location.href = "/static/login.html";
+                    return;
+                }
+
+                const skillId = document.getElementById('skillFilter').value;
+                const topN = document.getElementById('topNFilter').value;
+
+                let url = `${API_BASE}/recommend/?top_n=${topN}`;
+                if (skillId) {
+                    url = `${API_BASE}/recommend/by-skill/${skillId}?top_n=${topN}`;
+                }
+
+                const response = await fetch(url, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || "Failed to load recommendations");
+                }
+
+                const recommendations = await response.json();
+                displayRecommendations(recommendations);
+
+            } catch (error) {
+                console.error("Error loading recommendations:", error);
+                showError(error.message);
+            }
+        }
+
+        // ==========================================
+        // DISPLAY RECOMMENDATIONS
+        // ==========================================
+        function displayRecommendations(recommendations) {
+            const listEl = document.getElementById('recommendationsList');
+            mentorTeachingSkillsById = {};
+
+            if (!recommendations || recommendations.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🤖</div>
+                        <h4>No Recommendations Found</h4>
+                        <p class="text-muted">
+                            Please add skills you want to learn in your account first.<br>
+                            Go to <a href="/static/add-skill.html?type=learn">Manage Learning Skills</a>
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            recommendations.forEach((rec) => {
+                const safeSkills = Array.isArray(rec.mentor_teaching_skills)
+                    ? rec.mentor_teaching_skills
+                        .filter((skill) => skill && skill.id && (skill.name || skill.title))
+                        .map((skill) => ({
+                            id: Number(skill.id),
+                            name: skill.name || skill.title,
+                        }))
+                    : [];
+                mentorTeachingSkillsById[String(rec.mentor_id)] = safeSkills;
+            });
+
+            listEl.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-card">
+                    <div class="rank-badge">${rec.rank}</div>
+                    
+                    <div class="mentor-header">
+                        <h3 class="mentor-name">${rec.mentor_name}</h3>
+                        
+                        <div class="mentor-stats">
+                            ${rec.rating !== null ? `
+                                <div class="stat-badge">
+                                    <span class="rating-display">⭐ ${rec.rating.toFixed(1)}</span>
+                                    <span class="stat-label">(${rec.total_reviews} reviews)</span>
+                                </div>
+                            ` : `
+                                <div class="stat-badge">
+                                    <span class="stat-label">New Mentor</span>
+                                </div>
+                            `}
+                            
+                            <div class="stat-badge">
+                                <span class="stat-label">Skill Match:</span>
+                                <span class="stat-value">${(rec.similarity_score * 100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compatibility-bar">
+                        <div class="compatibility-label">
+                            Overall Compatibility: ${(rec.compatibility_score * 100).toFixed(0)}%
+                        </div>
+                        <div class="progress">
+                            <div 
+                                class="progress-bar ${getCompatibilityColor(rec.compatibility_score)}" 
+                                style="width: ${rec.compatibility_score * 100}%"
+                            >
+                                ${(rec.compatibility_score * 100).toFixed(0)}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="explanation">
+                        <p class="explanation-text">
+                            💡 ${rec.explanation}
+                        </p>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="viewMentorProfile(${rec.mentor_id})">
+                            View Profile
+                        </button>
+                        <button
+                            class="btn btn-outline-secondary js-request-session"
+                            data-mentor-id="${rec.mentor_id}"
+                            data-mentor-name="${escapeAttr(rec.mentor_name || "Mentor")}"
+                        >
+                            Request Session
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            bindRecommendationActions();
+        }
+
+        function bindRecommendationActions() {
+            document.querySelectorAll(".js-request-session").forEach((btn) => {
+                btn.addEventListener("click", async (event) => {
+                    event.preventDefault();
+                    const mentorId = Number(btn.dataset.mentorId);
+                    const mentorName = btn.dataset.mentorName || "Mentor";
+                    if (!mentorId || !Number.isFinite(mentorId)) {
+                        alert("Invalid mentor selected.");
+                        return;
+                    }
+                    await openSessionRequestModal(mentorId, mentorName);
+                });
+            });
+        }
+
+        // ==========================================
+        // HELPER FUNCTIONS
+        // ==========================================
+        function getCompatibilityColor(score) {
+            if (score >= 0.8) return 'bg-success';
+            if (score >= 0.6) return 'bg-info';
+            if (score >= 0.4) return 'bg-warning';
+            return 'bg-secondary';
+        }
+
+        function viewMentorProfile(mentorId, mentorName = "") {
+            const params = new URLSearchParams({
+                mentor_id: String(mentorId),
+                cb: String(Date.now()) // Avoid stale cached static/API responses.
+            });
+            if (mentorName) {
+                params.set("mentor_name", mentorName);
+            }
+            window.location.href = `/static/mentor-profile.html?${params.toString()}`;
+        }
+
+        async function getMentorTeachingSkills(mentorId) {
+            const cacheKey = String(mentorId);
+            const cached = mentorTeachingSkillsById[cacheKey];
+            if (Array.isArray(cached) && cached.length > 0) {
+                return cached;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/users/public/${mentorId}`, {
+                    cache: "no-store",
+                });
+                if (!response.ok) {
+                    return [];
+                }
+
+                const data = await response.json();
+                const skills = Array.isArray(data.teaching_skills)
+                    ? data.teaching_skills
+                        .filter((skill) => skill && skill.id && (skill.name || skill.title))
+                        .map((skill) => ({
+                            id: Number(skill.id),
+                            name: skill.name || skill.title,
+                        }))
+                    : [];
+
+                mentorTeachingSkillsById[cacheKey] = skills;
+                return skills;
+            } catch (error) {
+                console.error("Failed to load mentor teaching skills:", error);
+                return [];
+            }
+        }
+
+        async function openSessionRequestModal(mentorId, mentorName) {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "/static/login.html";
+                return;
+            }
+            if (!allSkillsForRequest.length) {
+                alert("No skills available for booking right now.");
+                return;
+            }
+
+            document.getElementById("requestMentorId").value = mentorId;
+            document.getElementById("requestMentorName").textContent = mentorName || "Mentor";
+            document.getElementById("requestDate").value = "";
+            document.getElementById("requestTime").value = "";
+            document.getElementById("requestNotes").value = "";
+            const skillSelect = document.getElementById("requestSkillSelect");
+            const skillHelp = document.getElementById("requestSkillHelp");
+            const submitBtn = document.getElementById("submitRecommendationRequestBtn");
+
+            const mentorSkills = await getMentorTeachingSkills(mentorId);
+            if (!mentorSkills.length) {
+                skillSelect.innerHTML = `<option value="">No teaching skills available</option>`;
+                skillSelect.disabled = true;
+                if (submitBtn) submitBtn.disabled = true;
+                skillHelp.textContent = "This mentor currently has no teachable skills configured for booking.";
+                document.getElementById("sessionRequestModal").style.display = "flex";
+                return;
+            }
+
+            const selectedFilterSkill = document.getElementById("skillFilter").value;
+            const defaultSkill = mentorSkills.find(
+                (skill) => String(skill.id) === String(selectedFilterSkill)
+            ) || mentorSkills[0];
+
+            skillSelect.innerHTML = mentorSkills.map((skill) => `
+                <option value="${skill.id}">${escapeAttr(skill.name)}</option>
+            `).join("");
+            skillSelect.value = String(defaultSkill.id);
+            skillSelect.disabled = false;
+            if (submitBtn) submitBtn.disabled = false;
+            skillHelp.textContent = "Select one skill this mentor teaches.";
+
+            document.getElementById("sessionRequestModal").style.display = "flex";
+        }
+
+        function closeSessionRequestModal() {
+            document.getElementById("sessionRequestModal").style.display = "none";
+        }
+
+        async function submitRecommendationSessionRequest() {
+            if (isSubmittingRecommendationRequest) return;
+
+            const token = localStorage.getItem("token");
+            const mentorId = document.getElementById("requestMentorId").value;
+            const skillId = document.getElementById("requestSkillSelect").value;
+            const date = document.getElementById("requestDate").value;
+            const time = document.getElementById("requestTime").value;
+            const notes = document.getElementById("requestNotes").value.trim();
+
+            if (!mentorId || !skillId) {
+                alert("Please select a valid mentor and skill.");
+                return;
+            }
+            if (!date || !time) {
+                alert("Please select both date and time.");
+                return;
+            }
+            if (!notes) {
+                alert("Please add a short note about your learning goal.");
+                return;
+            }
+
+            const submitBtn = document.getElementById("submitRecommendationRequestBtn");
+            const originalBtnLabel = submitBtn ? submitBtn.textContent : "";
+
+            try {
+                isSubmittingRecommendationRequest = true;
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = "Sending...";
+                }
+
+                const formData = new FormData();
+                formData.append("mentor_id", mentorId);
+                formData.append("skill_id", skillId);
+                formData.append("scheduled_time", `${date}T${time}`);
+                formData.append("notes", notes);
+
+                const response = await fetch(`${API_BASE}/sessions/request`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    const detail = Array.isArray(err.detail)
+                        ? err.detail.map(item => item.msg || item.message || "").filter(Boolean).join(", ")
+                        : err.detail;
+                    throw new Error(detail || "Failed to create session request");
+                }
+
+                closeSessionRequestModal();
+                alert("Session request sent successfully.");
+                window.location.href = "/static/sessions.html";
+            } catch (error) {
+                console.error("Session request error:", error);
+                alert(`Request failed: ${error.message}`);
+            } finally {
+                isSubmittingRecommendationRequest = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnLabel || "Request Session";
+                }
+            }
+        }
+
+        // Backward compatibility with older button wiring.
+        function requestSession(mentorId) {
+            openSessionRequestModal(mentorId, "Mentor");
+        }
+
+        function showError(message) {
+            const listEl = document.getElementById('recommendationsList');
+            listEl.innerHTML = `
+                <div class="empty-state">
+                    <div class="alert alert-danger">
+                        <h5>❌ Error</h5>
+                        <p>${message}</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadRecommendations()">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

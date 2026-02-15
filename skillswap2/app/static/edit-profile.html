@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile - SkillSwap</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .top-navbar {
+      background: white;
+      padding: 15px 30px;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .profile-card {
+      max-width: 760px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      padding: 26px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .status-text {
+      margin-top: 10px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-navbar">
+    <div class="navbar-brand">🎓 SkillSwap</div>
+    <div id="navName">User</div>
+  </div>
+
+  <div class="profile-card">
+    <h3 class="mb-3">Edit Profile</h3>
+    <p class="text-muted mb-4">Update your account details.</p>
+
+    <form id="profileForm">
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input id="email" type="email" class="form-control" disabled>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <input id="fullName" type="text" class="form-control" required>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Phone</label>
+          <input id="phone" type="text" class="form-control">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Age</label>
+          <input id="age" type="number" min="1" class="form-control">
+        </div>
+      </div>
+
+      <div id="mentorFields" style="display:none;">
+        <div class="mb-3">
+          <label class="form-label">Qualification</label>
+          <input id="qualification" type="text" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Experience</label>
+          <input id="experience" type="text" class="form-control" placeholder="e.g. 3 years">
+        </div>
+      </div>
+
+      <div id="learnerFields" style="display:none;">
+        <div class="mb-3">
+          <label class="form-label">College / Institution</label>
+          <input id="studying" type="text" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">What You Want to Learn</label>
+          <textarea id="bio" class="form-control" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="actions mt-4">
+        <button type="button" class="btn btn-outline-secondary" onclick="goBack()">Back</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+      <div id="statusText" class="status-text"></div>
+    </form>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "/static/login.html";
+    }
+
+    let currentRole = null;
+    let canTeach = false;
+    let canLearn = false;
+
+    function setStatus(message, ok = false) {
+      const el = document.getElementById("statusText");
+      el.textContent = message;
+      el.style.color = ok ? "#166534" : "#b91c1c";
+    }
+
+    async function loadProfile() {
+      try {
+        const res = await fetch(`${API_BASE}/users/me`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          window.location.href = "/static/login.html";
+          return;
+        }
+        if (!res.ok) throw new Error("Failed to load profile");
+
+        const data = await res.json();
+        const profile = data.profile || {};
+        currentRole = String(data.role || "").toLowerCase();
+        canTeach = Boolean(data.can_teach);
+        canLearn = Boolean(data.can_learn);
+        if (currentRole !== "admin" && !canTeach && !canLearn) {
+          canLearn = true;
+        }
+
+        document.getElementById("navName").textContent = data.name || "User";
+        document.getElementById("email").value = data.email || "";
+        document.getElementById("fullName").value = profile.full_name || data.name || "";
+        document.getElementById("phone").value = profile.phone || "";
+        document.getElementById("age").value = profile.age || "";
+
+        document.getElementById("mentorFields").style.display = canTeach ? "block" : "none";
+        document.getElementById("learnerFields").style.display = canLearn ? "block" : "none";
+
+        if (canTeach) {
+          document.getElementById("qualification").value = profile.qualification || "";
+          document.getElementById("experience").value = profile.experience || "";
+        }
+
+        if (canLearn) {
+          document.getElementById("studying").value = profile.college || "";
+          document.getElementById("bio").value = profile.what_to_learn || "";
+        }
+      } catch (error) {
+        setStatus(error.message || "Could not load profile");
+      }
+    }
+
+    async function updateProfile(event) {
+      event.preventDefault();
+
+      const fullName = document.getElementById("fullName").value.trim();
+      if (!fullName) {
+        setStatus("Full name is required");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("full_name", fullName);
+
+      const phone = document.getElementById("phone").value.trim();
+      const age = document.getElementById("age").value.trim();
+      if (phone) formData.append("phone", phone);
+      if (age) formData.append("age", age);
+
+      if (canTeach) {
+        const qualification = document.getElementById("qualification").value.trim();
+        const experience = document.getElementById("experience").value.trim();
+        formData.append("qualification", qualification);
+        formData.append("experience", experience);
+      }
+
+      if (canLearn) {
+        const studying = document.getElementById("studying").value.trim();
+        const bio = document.getElementById("bio").value.trim();
+        formData.append("studying", studying);
+        formData.append("bio", bio);
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/users/profile`, {
+          method: "PUT",
+          headers: { "Authorization": `Bearer ${token}` },
+          body: formData
+        });
+
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({ detail: "Update failed" }));
+          throw new Error(error.detail || "Update failed");
+        }
+
+        setStatus("Profile updated successfully", true);
+      } catch (error) {
+        setStatus(error.message || "Update failed");
+      }
+    }
+
+    function goBack() {
+      window.location.href = "/static/sessions.html";
+    }
+
+    document.getElementById("profileForm").addEventListener("submit", updateProfile);
+    window.onload = loadProfile;
+  </script>
+</body>
+</html>

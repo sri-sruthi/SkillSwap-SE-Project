@@ -1,0 +1,42 @@
+SkillSwap Test Runbook (Current)
+================================
+
+Project root:
+  /Users/srisruthi/Downloads/SkillSwap-SE-Project/skillswap2
+
+1) Activate virtualenv
+----------------------
+  source .venv/bin/activate
+
+2) Run all pytest-style tests
+-----------------------------
+  pytest -q
+
+3) Run live workflow scripts individually
+-----------------------------------------
+  python tests/test_dual_role_api_workflow.py
+  python tests/test_phase3_api_workflow.py
+  python tests/test_phase5_api_workflow.py
+  python tests/test_phase6_api_workflow.py
+
+4) Full smoke suite (single command)
+------------------------------------
+  PATH="/Users/srisruthi/Downloads/SkillSwap-SE-Project/skillswap2/.venv/bin:$PATH" \
+  BASE_URL="http://127.0.0.1:8000" \
+  LEARNER_EMAIL="<LEARNER_EMAIL>" \
+  LEARNER_PASSWORD="<LEARNER_PASSWORD>" \
+  MENTOR_EMAIL="<MENTOR_EMAIL>" \
+  MENTOR_PASSWORD="<MENTOR_PASSWORD>" \
+  /tmp/run_all_skillswap_tests.sh
+
+5) Fresh-temp-user defaults
+---------------------------
+Phase 3 and Phase 5 workflow scripts now default to:
+  - creating fresh temporary learner/mentor users
+  - creating a temporary teach-skill
+  - cleaning up temporary DB rows after run
+
+Override to credential mode:
+  PHASE3_USE_FRESH_USERS=0
+  PHASE5_USE_FRESH_USERS=0
+
