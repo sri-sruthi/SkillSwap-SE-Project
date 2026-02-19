@@ -31,8 +31,12 @@ class Token(BaseModel):
     role: str
 
 
-def is_edu_email(email: str) -> bool:
-    return bool(re.match(r"^[^@\s]+@[^@\s]+\.edu$", email.strip().lower()))
+def is_allowed_signup_email(email: str) -> bool:
+    normalized = email.strip().lower()
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", normalized):
+        return False
+    domain = normalized.split("@", 1)[1]
+    return domain.endswith(".edu") or domain == "gmail.com"
 
 # ===== REGISTER ENDPOINT =====
 
@@ -49,8 +53,11 @@ async def register(user_data: RegisterRequest, db: Session = Depends(get_db)):
     canonical_role = "student"
 
     normalized_email = user_data.email.strip().lower()
-    if not is_edu_email(normalized_email):
-        raise HTTPException(status_code=400, detail="Only .edu email addresses are allowed")
+    if not is_allowed_signup_email(normalized_email):
+        raise HTTPException(
+            status_code=400,
+            detail="Only .edu or gmail.com email addresses are allowed",
+        )
     
     existing = db.query(models.User).filter(models.User.email == normalized_email).first()
     if existing:

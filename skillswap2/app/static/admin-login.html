@@ -128,6 +128,7 @@
 
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("role", data.role);
+        localStorage.setItem("userName", data.name || data.email || "Admin"); 
         window.location.href = "/admin/dashboard";
       } catch (err) {
         showError(err.message || "Admin login failed");

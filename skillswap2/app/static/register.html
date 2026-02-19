@@ -262,7 +262,7 @@
 
             <!-- Email -->
             <div class="form-group">
-                <label class="form-label" for="email">University Email <span class="required-star">*</span></label>
+                <label class="form-label" for="email">Email (.edu or Gmail) <span class="required-star">*</span></label>
                 <div class="input-wrapper">
                     <i class="fas fa-envelope input-icon"></i>
                     <input type="email"
@@ -270,7 +270,7 @@
                            name="email"
                            autocomplete="email"
                            class="form-control"
-                           placeholder="your.email@university.edu"
+                           placeholder="your.email@university.edu or yourname@gmail.com"
                            required>
                 </div>
                 <div class="error-message" id="emailError">Please enter a valid email</div>
@@ -423,9 +423,9 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         return;
     }
 
-    const eduEmailPattern = /^[^\s@]+@[^\s@]+\.edu$/i;
-    if (!eduEmailPattern.test(email)) {
-        showAlert("Please use your university .edu email address", "danger");
+    const allowedEmailPattern = /^[^\s@]+@([^\s@]+\.edu|gmail\.com)$/i;
+    if (!allowedEmailPattern.test(email)) {
+        showAlert("Please use a .edu or gmail.com email address", "danger");
         return;
     }
     

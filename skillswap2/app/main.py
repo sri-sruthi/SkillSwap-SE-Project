@@ -5,8 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from app.database import Base, engine
-from app.api import auth, notification, recommendation, review, search, session, skill, token, users
-
+from app.api import auth, notification, recommendation, report, review, search, session, skill, token, users
+from app.api import admin 
+from app.api import analytics  
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
@@ -36,8 +37,11 @@ app.include_router(session.router)       # /sessions/*
 app.include_router(search.router)        # /search/*
 app.include_router(review.router)        # /reviews/*
 app.include_router(notification.router)  # /notifications/*
+app.include_router(report.router)        # /reports/*
 app.include_router(token.router)
 app.include_router(recommendation.router)
+app.include_router(admin.router) 
+app.include_router(analytics.router) 
 
 @app.get("/")
 def root():

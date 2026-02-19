@@ -8,13 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime, UTC, timedelta
-from enum import Enum
 
 from app.database import get_db
 from app.models import session as models
 from app.models.skill import Skill, UserSkill
 from app.models.user import User
-from app.models.notification import Notification
+from app.services import notification_service
 from app.utils.security import get_current_user
 from app.schemas.session import SessionResponse
 
@@ -33,17 +32,30 @@ TEACH_SKILL_TYPES = ("teach", "offer")
 # ======================
 # HELPER FUNCTIONS
 # ======================
-def _create_notification(db: Session, recipient_id: int, actor_id: int, session_id: int, event_type: str, message: str):
-    """Create notification for session event"""
-    notification = Notification(
+def _create_notification(
+    db: Session,
+    recipient_id: int,
+    actor_id: int,
+    session_id: int,
+    event_type: str,
+    message: str,
+):
+    """Create in-app notification for a session event."""
+    return notification_service.create_notification(
+        db,
         recipient_id=recipient_id,
         actor_id=actor_id,
         session_id=session_id,
         event_type=event_type,
-        message=message
+        message=message,
     )
-    db.add(notification)
-    db.flush()
+
+
+def _dispatch_notification_email(db: Session, notification) -> None:
+    """Best-effort email dispatch that must not break request success."""
+    if not notification:
+        return
+    notification_service.dispatch_email_for_notification(db, notification)
 
 
 def _get_counterparty_id(session: models.Session, current_user_id: int) -> int:
@@ -260,7 +272,7 @@ def create_session_request(
     db.flush()
     
     # Notify mentor
-    _create_notification(
+    created_notification = _create_notification(
         db=db,
         recipient_id=mentor_id,
         actor_id=current_user.id,
@@ -270,6 +282,7 @@ def create_session_request(
     )
     
     db.commit()
+    _dispatch_notification_email(db, created_notification)
     db.refresh(new_session)
     
     return {
@@ -340,8 +353,9 @@ def accept_session(
     session.status = "Confirmed"
     session.notes = _strip_system_tags(session.notes)
     
+    created_notification = None
     if reconfirm_user_id is not None:
-        _create_notification(
+        created_notification = _create_notification(
             db=db,
             recipient_id=_get_counterparty_id(session, current_user.id),
             actor_id=current_user.id,
@@ -350,7 +364,7 @@ def accept_session(
             message=f"{current_user.name} accepted your reschedule request."
         )
     else:
-        _create_notification(
+        created_notification = _create_notification(
             db=db,
             recipient_id=session.learner_id,
             actor_id=current_user.id,
@@ -363,6 +377,7 @@ def accept_session(
         session.updated_at = datetime.now(UTC)
     
     db.commit()
+    _dispatch_notification_email(db, created_notification)
     
     return {
         "message": (
@@ -405,6 +420,7 @@ def decline_session(
         raise HTTPException(status_code=403, detail="Not authorized for this session")
 
     reconfirm_user_id = _get_reconfirm_user_id(session)
+    created_notification = None
     if reconfirm_user_id is not None:
         if reconfirm_user_id != current_user.id:
             raise HTTPException(
@@ -417,7 +433,7 @@ def decline_session(
             session.scheduled_time = prev_time
         response_status = "Confirmed"
         response_message = "Reschedule declined; previous confirmed slot retained"
-        _create_notification(
+        created_notification = _create_notification(
             db=db,
             recipient_id=_get_counterparty_id(session, current_user.id),
             actor_id=current_user.id,
@@ -434,7 +450,7 @@ def decline_session(
         session.status = "Cancelled"
         response_status = "Cancelled"
         response_message = "Session declined (no tokens deducted)"
-        _create_notification(
+        created_notification = _create_notification(
             db=db,
             recipient_id=session.learner_id,
             actor_id=current_user.id,
@@ -449,6 +465,7 @@ def decline_session(
         session.updated_at = datetime.now(UTC)
     
     db.commit()
+    _dispatch_notification_email(db, created_notification)
     
     return {
         "message": response_message,
@@ -504,7 +521,7 @@ def complete_session(
     
     session.status = "Completed"
     
-    _create_notification(
+    created_notification = _create_notification(
         db=db,
         recipient_id=_get_counterparty_id(session, current_user.id),
         actor_id=current_user.id,
@@ -517,6 +534,7 @@ def complete_session(
         session.updated_at = datetime.now(UTC)
     
     db.commit()
+    _dispatch_notification_email(db, created_notification)
     
     return {
         "message": "Session marked as completed and mentor rewarded",
@@ -578,7 +596,7 @@ def cancel_session(
     
     refund_message = f" 10 tokens refunded to learner." if tokens_refunded > 0 else ""
     
-    _create_notification(
+    created_notification = _create_notification(
         db=db,
         recipient_id=_get_counterparty_id(session, current_user.id),
         actor_id=current_user.id,
@@ -591,6 +609,7 @@ def cancel_session(
         session.updated_at = datetime.now(UTC)
     
     db.commit()
+    _dispatch_notification_email(db, created_notification)
     
     return {
         "message": f"Session cancelled{refund_message}",
@@ -687,7 +706,7 @@ async def reschedule_session(
     
     reason_text = f" Reason: {normalized_reason}" if normalized_reason else ""
     
-    _create_notification(
+    created_notification = _create_notification(
         db=db,
         recipient_id=_get_counterparty_id(session, current_user.id),
         actor_id=current_user.id,
@@ -700,6 +719,7 @@ async def reschedule_session(
         session.updated_at = datetime.now(UTC)
     
     db.commit()
+    _dispatch_notification_email(db, created_notification)
     
     return {
         "message": "Reschedule request sent (awaiting confirmation)",

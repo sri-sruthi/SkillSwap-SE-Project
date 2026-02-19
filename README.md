@@ -66,6 +66,28 @@ Open:
 
 - `http://localhost:8000/static/index.html`
 
+## Email Notifications (SMTP)
+
+Notification emails are implemented for:
+- all session events
+- `review_received`
+
+Email delivery is best-effort and does not block core actions (session/review APIs still succeed if SMTP fails).
+
+Configure these env vars in `skillswap2/.env`:
+
+```bash
+EMAIL_NOTIFICATIONS_ENABLED=true
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+EMAIL_FROM=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+SMTP_USE_TLS=true
+SMTP_USE_SSL=false
+SMTP_TIMEOUT_SECONDS=8
+```
+
 ## Smoke/Workflow Tests
 
 From `skillswap2/`:

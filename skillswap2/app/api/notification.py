@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
+from app.services import notification_service
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
@@ -14,13 +15,12 @@ def get_my_notifications(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    query = db.query(models.Notification).filter(
-        models.Notification.recipient_id == current_user.id
+    notifications = notification_service.list_user_notifications(
+        db,
+        user_id=current_user.id,
+        unread_only=unread_only,
+        limit=limit,
     )
-    if unread_only:
-        query = query.filter(models.Notification.is_read.is_(False))
-
-    notifications = query.order_by(models.Notification.created_at.desc()).limit(limit).all()
 
     return [
         {
@@ -43,15 +43,13 @@ def mark_notification_read(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    notification = db.query(models.Notification).filter(
-        models.Notification.id == notification_id,
-        models.Notification.recipient_id == current_user.id
-    ).first()
+    notification = notification_service.mark_notification_read(
+        db,
+        user_id=current_user.id,
+        notification_id=notification_id,
+    )
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
-
-    notification.is_read = True
-    db.commit()
 
     return {"message": "Notification marked as read", "id": notification.id}
 
@@ -61,10 +59,17 @@ def mark_all_notifications_read(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    count = db.query(models.Notification).filter(
-        models.Notification.recipient_id == current_user.id,
-        models.Notification.is_read.is_(False)
-    ).update({"is_read": True}, synchronize_session=False)
-
-    db.commit()
+    count = notification_service.mark_all_notifications_read(
+        db,
+        user_id=current_user.id,
+    )
     return {"message": "All notifications marked as read", "updated": count}
+
+
+@router.get("/unread-count")
+def get_unread_count(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    count = notification_service.get_unread_count(db, user_id=current_user.id)
+    return {"unread_count": count}

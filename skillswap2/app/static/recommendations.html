@@ -256,7 +256,9 @@
     <div class="top-nav">
         <div style="font-size: 1.2rem; font-weight: 700;">🎯 AI-Powered Recommendations</div>
         <div>
+            <a href="/static/search.html" class="btn btn-outline-secondary btn-sm me-2">Home</a>
             <a href="/static/search.html" class="btn btn-outline-secondary btn-sm me-2">Manual Search</a>
+            <a href="/static/notifications.html" class="btn btn-outline-secondary btn-sm me-2">Notifications</a>
             <a href="/static/sessions.html" class="btn btn-primary btn-sm">My Sessions</a>
         </div>
     </div>
@@ -545,6 +547,9 @@
                         >
                             Request Session
                         </button>
+                        <button class="btn btn-outline-danger" onclick="reportUser(${rec.mentor_id}, '${String(rec.mentor_name || "User").replace(/'/g, "\\'")}')">
+                            Report User
+                        </button>
                     </div>
                 </div>
             `).join('');
@@ -586,6 +591,36 @@
                 params.set("mentor_name", mentorName);
             }
             window.location.href = `/static/mentor-profile.html?${params.toString()}`;
+        }
+
+        async function reportUser(userId, userName) {
+            const reason = prompt(`Report ${userName || "this user"}.\nPlease enter a reason:`);
+            if (reason === null) return;
+            const trimmed = reason.trim();
+            if (!trimmed) {
+                alert("Report reason is required.");
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem("token");
+                const res = await fetch(`${API_BASE}/reports/`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        reported_user_id: Number(userId),
+                        reason: trimmed,
+                    }),
+                });
+                const body = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(body.detail || "Failed to submit report");
+                alert("Report submitted. Admin will review it.");
+            } catch (error) {
+                alert(`Failed to submit report: ${error.message}`);
+            }
         }
 
         async function getMentorTeachingSkills(mentorId) {

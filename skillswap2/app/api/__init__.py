@@ -3,6 +3,7 @@
 
 from . import auth
 from . import notification
+from . import report
 from . import recommendation
 from . import review
 from . import search
@@ -18,6 +19,7 @@ __all__ = [
     "session",
     "search",
     "notification",
+    "report",
     "review",
     "token",
     "recommendation",

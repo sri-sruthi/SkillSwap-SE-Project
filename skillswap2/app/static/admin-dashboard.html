@@ -5,68 +5,385 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - SkillSwap</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      color: #e2e8f0;
-    }
-    .wrapper {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-    .panel {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 16px;
-      padding: 24px;
-      backdrop-filter: blur(4px);
-    }
-    .title {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-    .subtitle {
-      color: #cbd5e1;
-      margin-bottom: 20px;
-    }
+    body { margin:0; background: linear-gradient(135deg,#0f172a,#1e293b); min-height:100vh;
+           font-family:'Segoe UI',sans-serif; color:#e2e8f0; padding:24px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+    .topbar h1 { font-size:1.8rem; font-weight:800; margin:0; color:#f1f5f9; }
+    .card { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.13);
+            border-radius:14px; padding:22px; margin-bottom:20px; }
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+    .stat-box { background:rgba(255,255,255,0.07); border-radius:12px; padding:18px; text-align:center; }
+    .stat-num { font-size:2rem; font-weight:800; color:#818cf8; }
+    .stat-label { font-size:0.8rem; color:#94a3b8; margin-top:4px; }
+    table { width:100%; border-collapse:collapse; }
+    th { background:rgba(255,255,255,0.08); padding:10px 14px; text-align:left;
+          font-size:0.8rem; text-transform:uppercase; color:#94a3b8; }
+    td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.07); font-size:0.9rem; color:#e2e8f0; }
+    tr:hover td { background:rgba(255,255,255,0.04); }
+    .badge-active  { background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:20px; font-size:0.78rem; }
+    .badge-blocked { background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:20px; font-size:0.78rem; }
+    .tab-btn { background:none; border:none; color:#94a3b8; padding:8px 18px; border-radius:8px;
+                cursor:pointer; font-size:0.95rem; margin-right:6px; }
+    .tab-btn.active { background:rgba(129,140,248,0.2); color:#818cf8; font-weight:600; }
+    .search-box { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+                  border-radius:8px; color:#f1f5f9; padding:8px 14px; width:260px;
+                  outline:none; font-size:0.9rem; }
+    .search-box::placeholder { color:#64748b; }
+    .btn-action { padding:4px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; border:none; }
+    .btn-block   { background:#ef4444; color:white; }
+    .btn-unblock { background:#10b981; color:white; }
+    .btn-resolve { background:#10b981; color:white; }
+    .btn-dismiss { background:#f59e0b; color:white; }
+    .report-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .section-title { font-size:1.1rem; font-weight:700; color:#f1f5f9; margin-bottom:14px; }
+    #toast { position:fixed; top:20px; right:20px; background:#374151; color:white;
+              padding:12px 20px; border-radius:10px; display:none; font-size:0.9rem; z-index:9999; }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <div class="panel">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-          <h1 class="title">Admin Dashboard</h1>
-          <p class="subtitle mb-0">Admin login is enabled. Full admin module can be merged next.</p>
-        </div>
-        <button class="btn btn-outline-light" onclick="logout()">Logout</button>
-      </div>
-      <hr class="border-light border-opacity-25 my-4">
-      <p>This is a temporary dashboard placeholder. Current available admin capability in this patch is authentication and role-based access entry.</p>
-      <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-light" href="/debug/routes">View API Routes</a>
-        <a class="btn btn-outline-light" href="/static/index.html">Go to Landing</a>
-      </div>
-    </div>
+
+<div id="toast"></div>
+
+<div class="topbar">
+  <h1>⚙️ Admin Dashboard</h1>
+  <div>
+    <a href="/static/index.html" class="btn btn-outline-light btn-sm me-2">🏠 Home</a>
+    <span id="adminName" style="color:#94a3b8; margin-right:16px; font-size:0.9rem;"></span>
+    <a href="/static/analytics.html" class="btn btn-outline-light btn-sm me-2">📊 Analytics</a>
+    <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
   </div>
+</div>
 
-  <script>
-    const token = localStorage.getItem("token");
-    const role = (localStorage.getItem("role") || "").toLowerCase();
+<!-- Stat Cards -->
+<div class="stat-grid" id="statGrid">
+  <div class="stat-box"><div class="stat-num" id="s-total-users">–</div><div class="stat-label">Total Users</div></div>
+  <div class="stat-box"><div class="stat-num" id="s-active-users">–</div><div class="stat-label">Active Users</div></div>
+  <div class="stat-box"><div class="stat-num" id="s-blocked-users">–</div><div class="stat-label">Blocked</div></div>
+  <div class="stat-box"><div class="stat-num" id="s-total-sessions">–</div><div class="stat-label">Total Sessions</div></div>
+  <div class="stat-box"><div class="stat-num" id="s-completed">–</div><div class="stat-label">Completed</div></div>
+  <div class="stat-box"><div class="stat-num" id="s-tokens">–</div><div class="stat-label">Tokens in Circulation</div></div>
+  <div class="stat-box"><div class="stat-num" id="s-open-reports">–</div><div class="stat-label">Open Reports</div></div>
+</div>
 
-    if (!token || role !== "admin") {
-      window.location.href = "/admin/login";
-    }
+<!-- Tabs -->
+<div style="margin-bottom:20px;">
+  <button class="tab-btn active" id="tab-users"    onclick="showTab('users')">👥 Users</button>
+  <button class="tab-btn"        id="tab-sessions" onclick="showTab('sessions')">📅 Sessions</button>
+  <button class="tab-btn"        id="tab-reports"  onclick="showTab('reports')">🚩 Reports</button>
+</div>
 
-    function logout() {
-      localStorage.clear();
-      window.location.href = "/admin/login";
-    }
-  </script>
+<!-- Users Panel -->
+<div id="panel-users" class="card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="section-title">User Management</div>
+    <input class="search-box" id="userSearch" placeholder="🔍  Search name or email…"
+            oninput="filterUsers()">
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Email</th><th>Tokens</th><th>Status</th><th>Joined</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="usersTableBody">
+        <tr><td colspan="6" style="text-align:center;color:#64748b;">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Sessions Panel -->
+<div id="panel-sessions" class="card" style="display:none;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="section-title">Session Activity</div>
+    <select id="statusFilter" onchange="loadSessions()"
+            style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+                   color:#f1f5f9;padding:6px 12px;border-radius:8px;">
+      <option value="">All Statuses</option>
+      <option>Pending</option><option>Confirmed</option>
+      <option>Completed</option><option>Cancelled</option>
+    </select>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Learner</th><th>Mentor</th><th>Skill</th><th>Status</th><th>Scheduled</th></tr>
+      </thead>
+      <tbody id="sessionsTableBody">
+        <tr><td colspan="6" style="text-align:center;color:#64748b;">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Reports Panel -->
+<div id="panel-reports" class="card" style="display:none;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="section-title">User Reports</div>
+    <button class="btn btn-outline-light btn-sm" onclick="loadReports()">Refresh</button>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Reporter</th><th>Reported User</th><th>Reason</th><th>Status</th><th>Created</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="reportsTableBody">
+        <tr><td colspan="7" style="text-align:center;color:#64748b;">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const API  = window.location.origin;
+const tok  = localStorage.getItem("token");
+const role = (localStorage.getItem("role") || "").toLowerCase();
+
+if (!tok || role !== "admin") { window.location.href = "/admin/login"; }
+
+document.getElementById("adminName").textContent = "Admin: " + (localStorage.getItem("userName") || "");
+
+let allUsers = [];
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.style.display = "block";
+  setTimeout(() => t.style.display = "none", 3000);
+}
+
+function showTab(name) {
+  document.getElementById("panel-users").style.display    = name === "users"    ? "" : "none";
+  document.getElementById("panel-sessions").style.display = name === "sessions" ? "" : "none";
+  document.getElementById("panel-reports").style.display  = name === "reports"  ? "" : "none";
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+  if (name === "sessions") loadSessions();
+  if (name === "reports") loadReports();
+}
+
+// Load stats
+async function loadStats() {
+  const res = await fetch(`${API}/admin/stats`, {
+    headers: { "Authorization": `Bearer ${tok}` }
+  });
+  if (!res.ok) return;
+  const d = await res.json();
+  document.getElementById("s-total-users").textContent   = d.users.total;
+  document.getElementById("s-active-users").textContent  = d.users.active;
+  document.getElementById("s-blocked-users").textContent = d.users.blocked;
+  document.getElementById("s-total-sessions").textContent = d.sessions.total;
+  document.getElementById("s-completed").textContent     = d.sessions.completed;
+  document.getElementById("s-tokens").textContent        = d.tokens.total_in_circulation;
+  document.getElementById("s-open-reports").textContent  = d.reports?.open ?? 0;
+}
+
+// Load users
+async function loadUsers() {
+  const res = await fetch(`${API}/admin/users?limit=200`, {
+    headers: { "Authorization": `Bearer ${tok}` }
+  });
+  if (!res.ok) return;
+  allUsers = await res.json();
+  renderUsers(allUsers);
+}
+
+function renderUsers(users) {
+  const tbody = document.getElementById("usersTableBody");
+  if (!users.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b;">No users found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td>${u.name}</td>
+      <td style="color:#94a3b8;">${u.email}</td>
+      <td>${u.token_balance != null ? u.token_balance + ' 🪙' : '–'}</td>
+      <td>
+        <span class="${u.is_active ? 'badge-active' : 'badge-blocked'}">
+          ${u.is_active ? 'Active' : 'Blocked'}
+        </span>
+      </td>
+      <td style="color:#64748b;">${u.created_at ? u.created_at.slice(0,10) : '–'}</td>
+      <td>
+        ${u.is_active
+          ? `<button class="btn-action btn-block"   onclick="blockUser(${u.id}, '${u.name}')">Block</button>`
+          : `<button class="btn-action btn-unblock" onclick="unblockUser(${u.id}, '${u.name}')">Unblock</button>`
+        }
+      </td>
+    </tr>`).join("");
+}
+
+function filterUsers() {
+  const q = document.getElementById("userSearch").value.toLowerCase();
+  renderUsers(allUsers.filter(u =>
+    u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+  ));
+}
+
+async function blockUser(id, name) {
+  if (!confirm(`Block ${name}?`)) return;
+  const res = await fetch(`${API}/admin/users/${id}/block`, {
+    method: "PATCH",
+    headers: { "Authorization": `Bearer ${tok}` }
+  });
+  if (res.ok) { showToast(`${name} blocked`); loadUsers(); loadStats(); }
+  else showToast("Failed to block user");
+}
+
+async function unblockUser(id, name) {
+  const res = await fetch(`${API}/admin/users/${id}/unblock`, {
+    method: "PATCH",
+    headers: { "Authorization": `Bearer ${tok}` }
+  });
+  if (res.ok) { showToast(`${name} unblocked`); loadUsers(); loadStats(); }
+  else showToast("Failed to unblock user");
+}
+
+// Load sessions
+async function loadSessions() {
+  const status = document.getElementById("statusFilter").value;
+  const url = `${API}/admin/sessions?limit=100${status ? "&status=" + status : ""}`;
+  const res = await fetch(url, { headers: { "Authorization": `Bearer ${tok}` } });
+  if (!res.ok) return;
+  const sessions = await res.json();
+  const tbody = document.getElementById("sessionsTableBody");
+  if (!sessions.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b;">No sessions found</td></tr>`;
+    return;
+  }
+  const colors = {
+    Pending:"#fef3c7;color:#92400e", Confirmed:"#dbeafe;color:#1e40af",
+    Completed:"#d1fae5;color:#065f46", Cancelled:"#fee2e2;color:#991b1b"
+  };
+  tbody.innerHTML = sessions.map(s => {
+    const c = colors[s.status] || "#f3f4f6;color:#374151";
+    return `<tr>
+      <td style="color:#64748b;">#${s.id}</td>
+      <td>${s.learner_name || s.learner_id}</td>
+      <td>${s.mentor_name || s.mentor_id}</td>
+      <td>${s.skill_name || "–"}</td>
+      <td><span style="background:${c};padding:3px 10px;border-radius:20px;font-size:0.78rem;">${s.status}</span></td>
+      <td style="color:#64748b;">${s.scheduled_time ? s.scheduled_time.slice(0,16).replace("T"," ") : "–"}</td>
+    </tr>`;
+  }).join("");
+}
+
+// Load reports
+async function loadReports() {
+  const res = await fetch(`${API}/admin/reports?limit=200`, {
+    headers: { "Authorization": `Bearer ${tok}` }
+  });
+  if (!res.ok) return;
+  const reports = await res.json();
+  const tbody = document.getElementById("reportsTableBody");
+  if (!reports.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b;">No reports found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = reports.map((r) => {
+    const normalizedStatus = String(r.status || "").trim().toLowerCase();
+    const isOpen = normalizedStatus === "open";
+    const statusStyleByStatus = {
+      open: "background:#fee2e2;color:#991b1b",
+      resolved: "background:#d1fae5;color:#065f46",
+      dismissed: "background:#fef3c7;color:#92400e",
+      blocked: "background:#e0e7ff;color:#3730a3"
+    };
+    const statusStyle = statusStyleByStatus[normalizedStatus] || "background:#e2e8f0;color:#334155";
+    const safeReason = (r.reason || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const safeReportedName = (r.reported_user_name || "Unknown").replace(/'/g, "\\'");
+
+    return `<tr>
+      <td style="color:#64748b;">#${r.id}</td>
+      <td>${r.reporter_name || "Unknown"}<br><small style="color:#94a3b8">${r.reporter_email || ""}</small></td>
+      <td>${r.reported_user_name || "Unknown"}<br><small style="color:#94a3b8">${r.reported_user_email || ""}</small></td>
+      <td>${safeReason}</td>
+      <td><span style="${statusStyle};padding:3px 10px;border-radius:20px;font-size:0.78rem;">${r.status}</span></td>
+      <td style="color:#64748b;">${r.created_at ? r.created_at.slice(0,16).replace("T"," ") : "–"}</td>
+      <td>
+        ${isOpen
+          ? `<div class="report-actions">
+              <button class="btn-action btn-resolve" onclick="resolveReport(${r.id})">Resolve</button>
+              <button class="btn-action btn-dismiss" onclick="dismissReport(${r.id})">Dismiss</button>
+              <button class="btn-action btn-block" onclick="blockReportedUser(${r.id}, '${safeReportedName}')">Block User</button>
+            </div>`
+          : `<span style="color:#94a3b8;">${r.status}</span>`
+        }
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+async function resolveReport(reportId) {
+  const note = prompt("Optional resolution note:");
+  const query = note && note.trim()
+    ? `?resolution_note=${encodeURIComponent(note.trim())}`
+    : "";
+  const res = await fetch(`${API}/admin/reports/${reportId}/resolve${query}`, {
+    method: "PATCH",
+    headers: { "Authorization": `Bearer ${tok}` }
+  });
+  const body = await res.json().catch(() => ({}));
+  if (res.ok) {
+    showToast(body.message || `Report #${reportId} resolved`);
+    loadReports();
+    loadStats();
+  } else {
+    showToast(body.detail || "Failed to resolve report");
+  }
+}
+
+async function dismissReport(reportId) {
+  const note = prompt("Optional dismiss note:");
+  const query = note && note.trim()
+    ? `?resolution_note=${encodeURIComponent(note.trim())}`
+    : "";
+  const res = await fetch(`${API}/admin/reports/${reportId}/dismiss${query}`, {
+    method: "PATCH",
+    headers: { "Authorization": `Bearer ${tok}` }
+  });
+  const body = await res.json().catch(() => ({}));
+  if (res.ok) {
+    showToast(body.message || `Report #${reportId} dismissed`);
+    loadReports();
+    loadStats();
+  } else {
+    showToast(body.detail || "Failed to dismiss report");
+  }
+}
+
+async function blockReportedUser(reportId, reportedUserName) {
+  if (!confirm(`Block ${reportedUserName} and close report #${reportId}?`)) return;
+  const note = prompt("Optional block note:");
+  const query = note && note.trim()
+    ? `?resolution_note=${encodeURIComponent(note.trim())}`
+    : "";
+  const res = await fetch(`${API}/admin/reports/${reportId}/block-reported-user${query}`, {
+    method: "PATCH",
+    headers: { "Authorization": `Bearer ${tok}` }
+  });
+  const body = await res.json().catch(() => ({}));
+  if (res.ok) {
+    showToast(body.message || `${reportedUserName} blocked`);
+    loadReports();
+    loadUsers();
+    loadStats();
+  } else {
+    showToast(body.detail || "Failed to block reported user");
+  }
+}
+
+function logout() { localStorage.clear(); window.location.href = "/admin/login"; }
+
+loadStats();
+loadUsers();
+loadReports();
+</script>
 </body>
 </html>

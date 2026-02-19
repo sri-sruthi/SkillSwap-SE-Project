@@ -161,8 +161,14 @@
     <div class="top-nav">
         <div class="nav-brand">SkillSwap</div>
         <div class="nav-actions">
+            <a href="/static/search.html" class="btn btn-outline-primary me-2">Home</a>
             <a href="/static/sessions.html" class="btn btn-outline-primary me-2">My Sessions</a>
             <a href="/static/search.html" class="btn btn-outline-primary me-2">Find Mentors</a>
+            <a href="/static/notifications.html" id="notifBellLink"
+               style="position:relative; color:#667eea; margin-right:15px; font-size:1.3rem; text-decoration:none;">
+              <i class="fas fa-bell"></i>
+              <span id="notifCount" style="display:none; position:absolute; top:-8px; right:-8px; background:#ef4444; color:white; border-radius:50%; width:18px; height:18px; font-size:0.65rem; font-weight:700; align-items:center; justify-content:center;">0</span>
+            </a>
             <button onclick="logout()" class="btn btn-outline-danger">Logout</button>
         </div>
     </div>
@@ -380,6 +386,25 @@
             localStorage.removeItem("userName");
             window.location.href = "/static/login.html";
         }
+
+        // Notification bell counter
+        async function loadNotifCount() {
+          const t = localStorage.getItem("token");
+          if (!t) return;
+          try {
+            const res = await fetch(`${window.location.origin}/notifications/unread-count`, {
+              headers: { "Authorization": `Bearer ${t}` }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            const badge = document.getElementById("notifCount");
+            if (badge && data.unread_count > 0) {
+              badge.textContent = data.unread_count;
+              badge.style.display = "flex";
+            }
+          } catch (e) {}
+        }
+        loadNotifCount();
 
         // ==========================================
         // INITIALIZE

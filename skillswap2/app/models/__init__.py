@@ -5,6 +5,7 @@ from .session import Session
 from .token import TokenWallet, TokenTransaction, TransactionType, TransactionStatus
 from .review import Review, MentorRating
 from .notification import Notification
+from .report import Report
 from .recommendation import Recommendation
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     "Review",
     "MentorRating",
     "Notification",
+    "Report",
     "Recommendation",
 ]

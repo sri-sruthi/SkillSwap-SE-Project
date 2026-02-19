@@ -31,6 +31,11 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+    .top-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
     .profile-trigger {
       display: flex;
       align-items: center;
@@ -183,6 +188,20 @@
       background: #667eea;
       color: white;
     }
+    .report-btn {
+      border: 2px solid #ef4444;
+      color: #ef4444;
+      background: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .report-btn:hover {
+      background: #ef4444;
+      color: white;
+    }
     .ai-metrics {
       display: flex;
       gap: 8px;
@@ -260,10 +279,14 @@
 <!-- Top Navbar -->
 <div class="top-navbar">
   <div class="navbar-brand">🎓 SkillSwap</div>
-  <button class="profile-trigger" onclick="toggleProfile()">
-    <div class="profile-avatar-small" id="navAvatar">👤</div>
-    <span id="navName">User</span>
-  </button>
+  <div class="top-nav-actions">
+    <a href="/static/search.html" class="btn btn-outline-primary btn-sm">🏠 Home</a>
+    <a href="/static/notifications.html" class="btn btn-outline-primary btn-sm">🔔 Notifications</a>
+    <button class="profile-trigger" onclick="toggleProfile()">
+      <div class="profile-avatar-small" id="navAvatar">👤</div>
+      <span id="navName">User</span>
+    </button>
+  </div>
 </div>
 
 <!-- Main Content -->
@@ -572,6 +595,9 @@ function renderManualMentors(mentors) {
           <button class="profile-btn" onclick="viewMentorProfile(${mentor.user_id}, '${(mentor.mentor_name || '').replace(/'/g, "\\'")}')">
             <i class="fas fa-user"></i> View Profile
           </button>
+          <button class="report-btn" onclick="reportUser(${mentor.user_id}, '${(mentor.mentor_name || "User").replace(/'/g, "\\'")}')">
+            <i class="fas fa-flag"></i> Report User
+          </button>
         </div>
       </div>
     `;
@@ -635,6 +661,9 @@ function renderAiMentors(recommendations) {
           </button>
           <button class="profile-btn" onclick="viewMentorProfile(${rec.mentor_id}, '${(rec.mentor_name || '').replace(/'/g, "\\'")}')">
             <i class="fas fa-user"></i> View Profile
+          </button>
+          <button class="report-btn" onclick="reportUser(${rec.mentor_id}, '${(rec.mentor_name || "User").replace(/'/g, "\\'")}')">
+            <i class="fas fa-flag"></i> Report User
           </button>
         </div>
       </div>
@@ -734,6 +763,34 @@ function viewMentorProfile(mentorId, mentorName = "") {
     params.set("mentor_name", mentorName.trim());
   }
   window.location.href = `/static/mentor-profile.html?${params.toString()}`;
+}
+async function reportUser(userId, userName) {
+  const reason = prompt(`Report ${userName || "this user"}.\nPlease enter a reason:`);
+  if (reason === null) return;
+  const trimmed = reason.trim();
+  if (!trimmed) {
+    alert("Report reason is required.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        reported_user_id: userId,
+        reason: trimmed
+      })
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail || "Failed to submit report");
+    alert("Report submitted. Admin will review it.");
+  } catch (error) {
+    alert(`Failed to submit report: ${error.message}`);
+  }
 }
 function toggleProfile() {
   window.location.href = "/static/edit-profile.html";

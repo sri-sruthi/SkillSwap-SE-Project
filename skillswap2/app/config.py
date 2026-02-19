@@ -58,11 +58,16 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     DEBUG: bool = True
     
-    # Email Configuration (optional but defined)
+    # Email Configuration
+    EMAIL_NOTIFICATIONS_ENABLED: bool = True
     SMTP_SERVER: Optional[str] = None
-    SMTP_PORT: Optional[int] = None
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: Optional[str] = None
     EMAIL_FROM: Optional[str] = None
     EMAIL_PASSWORD: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    SMTP_USE_SSL: bool = False
+    SMTP_TIMEOUT_SECONDS: int = 8
 
     if _USE_V2_SETTINGS:
         model_config = SettingsConfigDict(

@@ -10,6 +10,8 @@ from datetime import datetime, UTC
 
 from app.crud import review as review_crud
 from app.models.review import Review, MentorRating
+from app.services import notification_service
+from app.models.user import User
 
 
 # ======================
@@ -77,8 +79,23 @@ def submit_review(
         # Update mentor's average rating
         updated_rating = review_crud.update_mentor_rating(db, session.mentor_id)
         
+        # Get learner name for notification
+        learner = db.query(User).filter(User.id == learner_id).first()
+        learner_name = learner.name if learner else f"User {learner_id}"
+        
+        # Create notification for mentor
+        review_notification = notification_service.create_notification(
+            db,
+            recipient_id=session.mentor_id,
+            actor_id=learner_id,
+            session_id=session.id,
+            event_type="review_received",
+            message=f"{learner_name} left you a {rating}-star review.",
+        )
+        
         # Commit transaction
         db.commit()
+        notification_service.dispatch_email_for_notification(db, review_notification)
         
         return {
             "review_id": review.id,

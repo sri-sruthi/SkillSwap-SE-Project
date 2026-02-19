@@ -425,11 +425,19 @@
   <div class="navbar-brand">🎓 SkillSwap</div>
 
   <div class="d-flex align-items-center">
+    <a href="/static/search.html" class="btn btn-outline-primary me-2">
+      🏠 Home
+    </a>
     <a href="/static/recommendations.html" class="btn btn-primary me-2">
       🤖 Find Mentors (AI)
     </a>
     <a href="/static/token-wallet.html" class="btn btn-outline-success me-2">
       💰 Wallet
+    </a>
+    <a href="/static/notifications.html" id="notifBellLink"
+       style="position:relative; color:#667eea; margin-right:15px; font-size:1.3rem; text-decoration:none;">
+      <i class="fas fa-bell"></i>
+      <span id="notifCount" style="display:none; position:absolute; top:-8px; right:-8px; background:#ef4444; color:white; border-radius:50%; width:18px; height:18px; font-size:0.65rem; font-weight:700; align-items:center; justify-content:center;">0</span>
     </a>
 
     <button class="profile-trigger" onclick="toggleProfileSidebar()">
@@ -746,7 +754,7 @@ async function checkReviewStatus(sessionId) {
   }
 }
 
-function getSessionActions(session, isMentor, canConfirmPending, isReschedulePending, otherName) {
+function getSessionActions(session, isMentor, canConfirmPending, isReschedulePending, otherName, otherUserId) {
   let actionButtons = "";
 
   if (canConfirmPending) {
@@ -784,6 +792,14 @@ function getSessionActions(session, isMentor, canConfirmPending, isReschedulePen
     actionButtons += `
       <button class="btn btn-warning btn-action" onclick="showRescheduleModal(${session.id})">
         <i class="fas fa-clock"></i> Reschedule
+      </button>
+    `;
+  }
+
+  if (otherUserId) {
+    actionButtons += `
+      <button class="btn btn-outline-danger btn-action" onclick="reportUser(${otherUserId}, '${otherName}')">
+        <i class="fas fa-flag"></i> Report User
       </button>
     `;
   }
@@ -1064,6 +1080,7 @@ function renderSessions(sessions) {
     const otherPerson = isMentor ? 
       { name: session.learner_name, email: session.learner_email } : 
       { name: session.mentor_name, qualification: session.mentor_qualification };
+    const otherUserId = isMentor ? session.learner_id : session.mentor_id;
     const otherName = escapeHtml(otherPerson.name || "the other user");
     const skillValue = session.skill_name ? escapeHtml(session.skill_name) : "N/A";
     const qualificationValue = otherPerson.qualification ? escapeHtml(otherPerson.qualification) : "N/A";
@@ -1089,7 +1106,8 @@ function renderSessions(sessions) {
       isMentor,
       canConfirmPending,
       isReschedulePending,
-      otherName
+      otherName,
+      otherUserId
     );
     
     return `
@@ -1309,6 +1327,35 @@ async function updateSessionStatus(sessionId, action) {
   }
 }
 
+async function reportUser(userId, userName) {
+  const reason = prompt(`Report ${userName || "this user"}.\nPlease enter a reason:`);
+  if (reason === null) return;
+  const trimmed = reason.trim();
+  if (!trimmed) {
+    alert("Report reason is required.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        reported_user_id: userId,
+        reason: trimmed
+      })
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail || "Failed to submit report");
+    alert("Report submitted. Admin will review it.");
+  } catch (error) {
+    alert(`Failed to submit report: ${error.message}`);
+  }
+}
+
 // Reschedule modal
 function showRescheduleModal(sessionId) {
   document.getElementById("rescheduleSessionId").value = sessionId;
@@ -1382,6 +1429,25 @@ function logout() {
   localStorage.clear();
   window.location.href = "/static/login.html";
 }
+
+// Notification bell counter
+async function loadNotifCount() {
+  const t = localStorage.getItem("token");
+  if (!t) return;
+  try {
+    const res = await fetch(`${window.location.origin}/notifications/unread-count`, {
+      headers: { "Authorization": `Bearer ${t}` }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const badge = document.getElementById("notifCount");
+    if (badge && data.unread_count > 0) {
+      badge.textContent = data.unread_count;
+      badge.style.display = "flex";
+    }
+  } catch (e) {}
+}
+loadNotifCount();
 
 // Initialize
 window.onload = () => {
