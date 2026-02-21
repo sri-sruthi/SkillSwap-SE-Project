@@ -357,6 +357,7 @@
         let allSkillsForRequest = [];
         let mentorTeachingSkillsById = {};
         let isSubmittingRecommendationRequest = false;
+        let currentUserId = null;
 
         function escapeAttr(value) {
             return String(value ?? "")
@@ -371,12 +372,35 @@
         // INITIALIZATION
         // ==========================================
         document.addEventListener("DOMContentLoaded", async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "/static/login.html";
+                return;
+            }
+            await loadCurrentUser();
             await loadSkills();
             await loadRecommendations();
 
             document.getElementById("skillFilter").addEventListener("change", loadRecommendations);
             document.getElementById("topNFilter").addEventListener("change", loadRecommendations);
         });
+
+        async function loadCurrentUser() {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch(`${API_BASE}/users/me`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to load current user");
+                }
+                const me = await response.json();
+                currentUserId = Number(me.id);
+            } catch (error) {
+                console.error("Error loading current user:", error);
+                currentUserId = null;
+            }
+        }
 
         // ==========================================
         // LOAD SKILLS FOR FILTER
@@ -448,7 +472,12 @@
                     throw new Error(error.detail || "Failed to load recommendations");
                 }
 
-                const recommendations = await response.json();
+                let recommendations = await response.json();
+                if (Number.isFinite(currentUserId)) {
+                    recommendations = recommendations.filter(
+                        (rec) => Number(rec.mentor_id) !== Number(currentUserId)
+                    );
+                }
                 displayRecommendations(recommendations);
 
             } catch (error) {

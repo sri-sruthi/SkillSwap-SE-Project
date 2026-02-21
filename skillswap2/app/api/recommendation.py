@@ -28,6 +28,35 @@ router = APIRouter(prefix="/recommend", tags=["recommendations"])
 TEACH_SKILL_TYPES = ("teach", "offer")
 
 
+def _sanitize_recommendations(
+    recommendations: list[dict],
+    *,
+    current_user_id: int,
+    top_n: int,
+) -> list[dict]:
+    """
+    Defensive post-filter to guarantee the logged-in user is never returned as their own mentor.
+    Also re-ranks results after filtering.
+    """
+    sanitized: list[dict] = []
+    for rec in recommendations or []:
+        mentor_id = rec.get("mentor_id")
+        try:
+            if int(mentor_id) == int(current_user_id):
+                continue
+        except (TypeError, ValueError):
+            continue
+        sanitized.append(dict(rec))
+
+    sanitized.sort(
+        key=lambda item: float(item.get("compatibility_score", 0.0)),
+        reverse=True,
+    )
+    for idx, rec in enumerate(sanitized, start=1):
+        rec["rank"] = idx
+    return sanitized[:top_n]
+
+
 def _get_mentor_teaching_skills(db: Session, mentor_id: int) -> list[MentorTeachingSkill]:
     """Return mentor teaching skills for booking-session dropdowns."""
     from app.models.skill import Skill, UserSkill
@@ -85,10 +114,15 @@ def get_recommendations(
         engine = get_global_engine(db)
         
         # Generate recommendations
-        recommendations = engine.recommend_mentors(
+        raw_recommendations = engine.recommend_mentors(
             db=db,
             learner_id=current_user.id,
-            top_n=top_n
+            top_n=top_n + 1
+        )
+        recommendations = _sanitize_recommendations(
+            raw_recommendations,
+            current_user_id=current_user.id,
+            top_n=top_n,
         )
         
         if not recommendations:
@@ -169,11 +203,16 @@ def get_recommendations_by_skill(
         engine = get_global_engine(db)
         
         # Generate recommendations filtered by skill
-        recommendations = engine.recommend_mentors(
+        raw_recommendations = engine.recommend_mentors(
             db=db,
             learner_id=current_user.id,
-            top_n=top_n,
+            top_n=top_n + 1,
             skill_filter=skill_id
+        )
+        recommendations = _sanitize_recommendations(
+            raw_recommendations,
+            current_user_id=current_user.id,
+            top_n=top_n,
         )
         
         if not recommendations:

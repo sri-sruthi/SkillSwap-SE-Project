@@ -391,6 +391,7 @@ let mentorDetailsByUserId = {};
 const AI_TOP_N = 10;
 let isSubmittingSessionRequest = false;
 let currentLevelFilter = "";
+let currentUserId = null;
 
 function normalizeRole(value) {
   return String(value || "").trim().toLowerCase();
@@ -459,6 +460,7 @@ async function init() {
     }
     
     const data = await res.json();
+    currentUserId = Number(data.id);
     role = normalizeRole(data.role || role);
     localStorage.setItem("role", role);
     canLearn = Boolean(data.can_learn);
@@ -502,6 +504,11 @@ async function loadHybridMentorData() {
     }
 
     manualMentors = await manualRes.json();
+    if (Number.isFinite(currentUserId)) {
+      manualMentors = manualMentors.filter(
+        (mentor) => Number(mentor.user_id) !== Number(currentUserId)
+      );
+    }
     mentorDetailsByUserId = {};
     manualMentors.forEach((mentor) => {
       mentorDetailsByUserId[mentor.user_id] = mentor;
@@ -520,6 +527,11 @@ async function loadHybridMentorData() {
         }
         if (aiRes.ok) {
           aiMentors = await aiRes.json();
+          if (Number.isFinite(currentUserId)) {
+            aiMentors = aiMentors.filter(
+              (rec) => Number(rec.mentor_id) !== Number(currentUserId)
+            );
+          }
           if (currentLevelFilter) {
             const allowedMentorIds = new Set(manualMentors.map((mentor) => mentor.user_id));
             aiMentors = aiMentors.filter((rec) => allowedMentorIds.has(rec.mentor_id));
