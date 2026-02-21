@@ -390,9 +390,19 @@ let aiMentors = [];
 let mentorDetailsByUserId = {};
 const AI_TOP_N = 10;
 let isSubmittingSessionRequest = false;
+let currentLevelFilter = "";
 
 function normalizeRole(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function normalizeLevel(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "beginner") return "Beginner";
+  if (normalized === "intermediate") return "Intermediate";
+  if (normalized === "advanced") return "Advanced";
+  if (normalized === "expert") return "Expert";
+  return "";
 }
 
 // ✅ Critical: Validate URL parameters IMMEDIATELY (no setTimeout)
@@ -416,7 +426,11 @@ function normalizeRole(value) {
   // Store globally
   window.currentSkillId = skillId;
   window.currentSkillName = urlParams.get('name') || `Skill #${skillId}`;
-  document.getElementById("skillSubtitle").textContent = `Find mentors for "${window.currentSkillName}"`;
+  currentLevelFilter = normalizeLevel(urlParams.get("level"));
+  const subtitle = currentLevelFilter
+    ? `Find ${currentLevelFilter}-level mentors for "${window.currentSkillName}"`
+    : `Find mentors for "${window.currentSkillName}"`;
+  document.getElementById("skillSubtitle").textContent = subtitle;
 
   // Proceed only if valid
   init();
@@ -475,7 +489,11 @@ async function init() {
 async function loadHybridMentorData() {
   const skillId = window.currentSkillId;
   try {
-    const manualRes = await fetch(`${API_BASE}/search/mentors/${skillId}`, {
+    const mentorSearchParams = new URLSearchParams();
+    if (currentLevelFilter) mentorSearchParams.set("level", currentLevelFilter);
+    const mentorSearchSuffix = mentorSearchParams.toString() ? `?${mentorSearchParams.toString()}` : "";
+
+    const manualRes = await fetch(`${API_BASE}/search/mentors/${skillId}${mentorSearchSuffix}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -502,6 +520,10 @@ async function loadHybridMentorData() {
         }
         if (aiRes.ok) {
           aiMentors = await aiRes.json();
+          if (currentLevelFilter) {
+            const allowedMentorIds = new Set(manualMentors.map((mentor) => mentor.user_id));
+            aiMentors = aiMentors.filter((rec) => allowedMentorIds.has(rec.mentor_id));
+          }
         } else {
           aiMentors = [];
           console.warn(`AI recommendations unavailable: HTTP ${aiRes.status}`);
@@ -570,6 +592,10 @@ function renderManualMentors(mentors) {
           <div class="detail-row">
             <span class="detail-label">Expertise:</span>
             <span class="detail-value">${window.currentSkillName}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Level:</span>
+            <span class="detail-value">${mentor.proficiency_level || "Beginner"}</span>
           </div>
           ${mentor.experience ? `
           <div class="detail-row">
@@ -643,6 +669,10 @@ function renderAiMentors(recommendations) {
           <div class="detail-row">
             <span class="detail-label">Expertise:</span>
             <span class="detail-value">${window.currentSkillName}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Level:</span>
+            <span class="detail-value">${details.proficiency_level || "Beginner"}</span>
           </div>
           ${details.experience ? `
           <div class="detail-row">

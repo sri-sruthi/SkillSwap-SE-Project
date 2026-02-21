@@ -33,6 +33,37 @@ class TokenPolicy:
 # WALLET OPERATIONS
 # =====================================
 
+def ensure_wallet_exists(db: Session, user_id: int) -> models.TokenWallet:
+    """
+    Ensure a wallet exists for user and lazily create one when missing.
+
+    This protects token flows for legacy/manual users created without wallet rows.
+    """
+    wallet = token_crud.get_wallet_by_user_id(db, user_id)
+    if wallet:
+        return wallet
+
+    user_exists = db.query(models.User.id).filter(models.User.id == user_id).first()
+    if not user_exists:
+        raise ValueError(f"User not found for wallet initialization: {user_id}")
+
+    try:
+        wallet = token_crud.create_wallet(
+            db=db,
+            user_id=user_id,
+            initial_balance=TokenPolicy.INITIAL_ALLOCATION
+        )
+        db.commit()
+        db.refresh(wallet)
+        return wallet
+    except SQLAlchemyError:
+        # In case of race/unique violation, recover by re-reading the row.
+        db.rollback()
+        wallet = token_crud.get_wallet_by_user_id(db, user_id)
+        if wallet:
+            return wallet
+        raise
+
 def initialize_wallet(db: Session, user_id: int) -> models.TokenWallet:
     """
     Create a new wallet with initial token allocation.
@@ -81,9 +112,7 @@ def get_wallet_balance(db: Session, user_id: int) -> int:
     Raises:
         ValueError: If wallet not found
     """
-    wallet = token_crud.get_wallet_by_user_id(db, user_id)
-    if not wallet:
-        raise ValueError(f"Wallet not found for user {user_id}")
+    wallet = ensure_wallet_exists(db, user_id)
     return wallet.balance
 
 
@@ -138,9 +167,7 @@ def spend_tokens(
         amount = TokenPolicy.SESSION_COST
     
     # Validation checks
-    wallet = token_crud.get_wallet_by_user_id(db, user_id)
-    if not wallet:
-        raise ValueError(f"Wallet not found for user {user_id}")
+    wallet = ensure_wallet_exists(db, user_id)
     
     if wallet.balance < amount:
         raise ValueError(
@@ -236,9 +263,7 @@ def earn_tokens(
         amount = TokenPolicy.SESSION_REWARD
     
     # Validation checks
-    wallet = token_crud.get_wallet_by_user_id(db, user_id)
-    if not wallet:
-        raise ValueError(f"Wallet not found for user {user_id}")
+    wallet = ensure_wallet_exists(db, user_id)
     
     # Check for duplicate transaction
     if token_crud.check_duplicate_transaction(db, session_id, TransactionType.EARN):
@@ -508,9 +533,7 @@ def refund_tokens_for_session(
     Backward-compatible wrapper used by Session API integration.
     Ensures the refund applies to the learner who originally paid.
     """
-    wallet = token_crud.get_wallet_by_user_id(db, user_id)
-    if not wallet:
-        raise ValueError(f"Wallet not found for user {user_id}")
+    wallet = ensure_wallet_exists(db, user_id)
 
     transactions = token_crud.get_session_transactions(db, session_id)
     spend_tx = next(

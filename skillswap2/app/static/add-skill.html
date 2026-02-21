@@ -500,8 +500,7 @@ const MODE_META = {
     submitLabel: "✅ Add Teaching Skill",
     addingLabel: "Adding teaching skill...",
     emptyHint: "Add your first teaching skill using the form above",
-    successMessage: `✅ Teaching skill added successfully!<br><br>
-      <a href="/static/recommendations.html" class="btn btn-primary btn-sm">🤖 Get AI Mentor Recommendations</a>`
+    successMessage: "✅ Teaching skill added successfully!"
   },
   learn: {
     pageSubtitle: "Add skills you want to learn and track your learning goals",
@@ -564,30 +563,35 @@ function switchSkillMode(mode) {
 window.onload = async () => {
   applyModeToUi();
   await loadMySkills();
-  await checkPendingRequests();
-  setInterval(checkPendingRequests, 30000);
+  await loadNotificationCount();
+  setInterval(loadNotificationCount, 30000);
 };
 
-// Check for pending session requests
-async function checkPendingRequests() {
+// Poll unread notification count for bell badge.
+async function loadNotificationCount() {
   try {
-    const response = await fetch(`${API_BASE}/sessions/pending`, {
+    const response = await fetch(`${API_BASE}/notifications/unread-count`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
-    
-    if (response.ok) {
-      const sessions = await response.json();
-      const badge = document.getElementById("notificationBadge");
-      
-      if (sessions.length > 0) {
-        badge.textContent = sessions.length;
-        badge.classList.remove("hidden");
-      } else {
-        badge.classList.add("hidden");
-      }
+
+    if (response.status === 401) {
+      return;
+    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const payload = await response.json().catch(() => ({}));
+    const unreadCount = Number(payload.unread_count || 0);
+    const badge = document.getElementById("notificationBadge");
+    if (!badge) return;
+
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
     }
   } catch (error) {
-    console.error("Error checking notifications:", error);
+    console.error("Error loading notification count:", error);
   }
 }
 
@@ -700,7 +704,11 @@ document.getElementById("addSkillForm").addEventListener("submit", async (e) => 
       throw new Error(err.detail || `HTTP ${response.status}`);
     }
 
-    showAlert(MODE_META[currentSkillType].successMessage, "success", true);
+    showAlert(
+      MODE_META[currentSkillType].successMessage,
+      "success",
+      currentSkillType === "learn"
+    );
     document.getElementById("addSkillForm").reset();
     applyModeToUi();
     await loadMySkills();

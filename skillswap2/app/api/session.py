@@ -171,6 +171,15 @@ def get_sessions(
     ]
 
 
+@router.get("/pending", response_model=List[SessionResponse])
+def get_pending_sessions(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Backward-compatible endpoint used by older frontend polling code."""
+    return get_sessions(status="Pending", current_user=current_user, db=db)
+
+
 # ======================
 # CREATE SESSION REQUEST
 # ======================
@@ -428,9 +437,16 @@ def decline_session(
                 detail="Reschedule must be declined by the other party"
             )
         prev_time = _extract_prev_time(session.notes)
+        if prev_time is None:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Cannot decline this reschedule because previous confirmed time metadata "
+                    "is missing. Ask the requester to send a new reschedule request."
+                ),
+            )
         session.status = "Confirmed"
-        if prev_time is not None:
-            session.scheduled_time = prev_time
+        session.scheduled_time = prev_time
         response_status = "Confirmed"
         response_message = "Reschedule declined; previous confirmed slot retained"
         created_notification = _create_notification(

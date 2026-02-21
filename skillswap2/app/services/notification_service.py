@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from typing import List, Optional
 
 from sqlalchemy.orm import Session
@@ -92,6 +93,21 @@ def create_notification(
     return notification
 
 
+def _send_notification_email(to_email: str, subject: str, body_text: str, *, notification_id: Optional[int], recipient_id: Optional[int]) -> None:
+    """Send SMTP mail in a background thread so API latency stays low."""
+    sent = send_email(
+        to_email=to_email,
+        subject=subject,
+        body_text=body_text,
+    )
+    if not sent:
+        logger.info(
+            "Notification email not sent (recipient_id=%s, notification_id=%s)",
+            recipient_id,
+            notification_id,
+        )
+
+
 def dispatch_email_for_notification(db: Session, notification: Notification) -> bool:
     """
     Best-effort email delivery for a committed notification.
@@ -120,18 +136,21 @@ def dispatch_email_for_notification(db: Session, notification: Notification) -> 
             "Open SkillSwap to view details."
         )
 
-        sent = send_email(
-            to_email=recipient.email,
-            subject=subject,
-            body_text=body_text,
+        worker = threading.Thread(
+            target=_send_notification_email,
+            args=(
+                recipient.email,
+                subject,
+                body_text,
+            ),
+            kwargs={
+                "notification_id": getattr(notification, "id", None),
+                "recipient_id": notification.recipient_id,
+            },
+            daemon=True,
         )
-        if not sent:
-            logger.info(
-                "Notification email not sent (recipient_id=%s, notification_id=%s)",
-                notification.recipient_id,
-                notification.id,
-            )
-        return sent
+        worker.start()
+        return True
     except Exception as exc:
         logger.warning(
             "Notification email dispatch failed (notification_id=%s): %s",

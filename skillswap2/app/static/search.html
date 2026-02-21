@@ -290,6 +290,31 @@ body {
   position: relative;
   margin-bottom: 30px;
 }
+.quick-filters-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.quick-filters-row .form-select {
+  max-width: 240px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.quick-filters-row .form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+}
+.active-filter-chip {
+  background: #eef2ff;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
 .search-input {
   width: 100%;
   padding: 18px 60px 18px 25px;
@@ -510,7 +535,6 @@ body {
 <div class="top-navbar">
   <div class="navbar-brand">🎓 SkillSwap</div>
   <div class="top-nav-actions">
-    <a href="/static/search.html" class="btn btn-outline-primary">🏠 Home</a>
     <a href="/static/recommendations.html" class="ai-nav-link">🤖 AI Recommendations</a>
     <a href="/static/notifications.html" id="notifBellLink"
        style="position:relative; color:#667eea; margin-right:15px; font-size:1.3rem; text-decoration:none;">
@@ -645,6 +669,20 @@ body {
       <button class="search-btn" onclick="performSearch()">
         Search
       </button>
+    </div>
+
+    <div class="quick-filters-row">
+      <select id="levelFilter" class="form-select" onchange="onLevelFilterChange()">
+        <option value="">All levels</option>
+        <option value="Beginner">Beginner</option>
+        <option value="Intermediate">Intermediate</option>
+        <option value="Advanced">Advanced</option>
+        <option value="Expert">Expert</option>
+      </select>
+      <button class="btn btn-outline-secondary btn-sm" onclick="clearSearchFilters()">
+        Clear filters
+      </button>
+      <span id="activeCategoryChip" class="active-filter-chip" style="display:none;"></span>
     </div>
 
     <button class="shortcuts-toggle" onclick="toggleShortcutsPanel()">
@@ -821,6 +859,8 @@ let currentRecentSkills = [];
 let renderedRecentCount = 0;
 let cachedTrendingSkills = null;
 let cachedRecentSkills = null;
+let selectedCategoryFilter = "";
+let selectedLevelFilter = "";
 
 function normalizeRole(value) {
   return String(value || "").trim().toLowerCase();
@@ -942,27 +982,46 @@ async function loadProfile() {
   }
 }
 
-// Load skills from backend
+function updateActiveCategoryChip() {
+  const chip = document.getElementById("activeCategoryChip");
+  if (!chip) return;
+  if (!selectedCategoryFilter) {
+    chip.style.display = "none";
+    chip.textContent = "";
+    return;
+  }
+  chip.style.display = "inline-flex";
+  chip.textContent = `Category: ${selectedCategoryFilter}`;
+}
+
+// Load skills from backend with current search/category/level filters.
 async function loadSkills() {
   try {
-    const res = await fetch(`${API_BASE}/search/skills`, {
+    const query = document.getElementById("searchInput").value.trim();
+    const params = new URLSearchParams();
+    if (query) params.set("query", query);
+    if (selectedCategoryFilter) params.set("category", selectedCategoryFilter);
+    if (selectedLevelFilter) params.set("level", selectedLevelFilter);
+    params.set("sort_by", "popularity");
+
+    const res = await fetch(`${API_BASE}/search/skills?${params.toString()}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const skills = await res.json();
-    
-    allSkills = skills; // Store for filtering
-    cachedTrendingSkills = null;
-    cachedRecentSkills = null;
+
+    allSkills = skills;
     displaySkills(skills);
+    updateActiveCategoryChip();
   } catch (err) {
     console.error("Failed to load skills:", err);
-    document.getElementById("skillsContainer").innerHTML = 
+    document.getElementById("skillsContainer").innerHTML =
       `<div class="alert alert-warning text-center py-4">
         <i class="fas fa-exclamation-triangle me-2"></i>
         No skills available. Add some via ${getManageSkillCtas()}.
       </div>`;
+    document.getElementById("loadMoreContainer").style.display = "none";
   }
 }
 
@@ -1019,22 +1078,18 @@ function loadMoreSkills() {
 
 // Navigate to mentors page
 function viewMentors(skillId, skillName) {
-  // ✅ Critical: Pass skillId as number, skillName as string
-  window.location.href = `/static/mentors.html?skill=${encodeURIComponent(skillId)}&name=${encodeURIComponent(skillName)}`;
+  const params = new URLSearchParams();
+  params.set("skill", String(skillId));
+  params.set("name", skillName);
+  if (selectedLevelFilter) {
+    params.set("level", selectedLevelFilter);
+  }
+  window.location.href = `/static/mentors.html?${params.toString()}`;
 }
 
 // Search functionality
-function performSearch() {
-  const query = document.getElementById("searchInput").value.toLowerCase().trim();
-  if (!query) {
-    displaySkills(allSkills);
-    return;
-  }
-  
-  const filtered = allSkills.filter(skill => 
-    skill.name.toLowerCase().includes(query)
-  );
-  displaySkills(filtered);
+async function performSearch() {
+  await loadSkills();
 }
 
 function handleSearchEnter(e) { 
@@ -1047,10 +1102,23 @@ function quickSearch(q) {
 }
 
 function filterByCategory(cat) {
-  const filtered = allSkills.filter(skill => 
-    skill.category.toLowerCase() === cat.toLowerCase()
-  );
-  displaySkills(filtered);
+  selectedCategoryFilter = cat;
+  performSearch();
+}
+
+function onLevelFilterChange() {
+  const levelValue = document.getElementById("levelFilter").value || "";
+  selectedLevelFilter = levelValue;
+  performSearch();
+}
+
+function clearSearchFilters() {
+  selectedCategoryFilter = "";
+  selectedLevelFilter = "";
+  document.getElementById("searchInput").value = "";
+  const levelFilter = document.getElementById("levelFilter");
+  if (levelFilter) levelFilter.value = "";
+  performSearch();
 }
 
 function toggleShortcutsPanel() {
@@ -1240,12 +1308,16 @@ function loadMoreRecentSkills() {
 }
 
 function renderSkillCard(skill) {
+  const levelBadge = selectedLevelFilter
+    ? `<span class="badge text-bg-light border">Level: ${selectedLevelFilter}</span>`
+    : "";
   return `
     <div class="skill-card">
       <div class="d-flex justify-content-between align-items-start mb-3">
         <h5 class="skill-title">${skill.name}</h5>
         <span class="mentor-count">${skill.mentor_count} 👨‍🏫</span>
       </div>
+      ${levelBadge}
       <p class="text-muted">${skill.description || ''}</p>
       <button class="view-mentors-btn" 
               onclick="viewMentors(${skill.id}, '${skill.name.replace(/'/g, "\\'")}');">

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Form
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
@@ -32,7 +33,7 @@ def get_public_mentor_profile(
 
     teaches_any_skill = db.query(models.UserSkill.id).filter(
         models.UserSkill.user_id == mentor_id,
-        models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES),
+        func.lower(models.UserSkill.skill_type).in_(TEACH_SKILL_TYPES),
     ).first()
     if not teaches_any_skill:
         raise HTTPException(status_code=404, detail="Mentor not found")
@@ -41,7 +42,7 @@ def get_public_mentor_profile(
         db.query(models.UserSkill)
         .filter(
             models.UserSkill.user_id == mentor_id,
-            models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES),
+            func.lower(models.UserSkill.skill_type).in_(TEACH_SKILL_TYPES),
         )
         .order_by(models.UserSkill.id.asc())
         .all()
@@ -98,11 +99,11 @@ def get_current_user_profile(
 
     can_teach = db.query(models.UserSkill.id).filter(
         models.UserSkill.user_id == current_user.id,
-        models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES),
+        func.lower(models.UserSkill.skill_type).in_(TEACH_SKILL_TYPES),
     ).first() is not None
     can_learn = db.query(models.UserSkill.id).filter(
         models.UserSkill.user_id == current_user.id,
-        models.UserSkill.skill_type.in_(LEARN_SKILL_TYPES),
+        func.lower(models.UserSkill.skill_type).in_(LEARN_SKILL_TYPES),
     ).first() is not None
 
     base_info = {

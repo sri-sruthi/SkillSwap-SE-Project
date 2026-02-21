@@ -11,6 +11,32 @@ from app.schemas import SkillSearchResult, MentorSearchResult
 
 router = APIRouter(prefix="/search", tags=["Search"])
 TEACH_SKILL_TYPES = ("teach", "offer")
+PROFICIENCY_LEVELS = ("Beginner", "Intermediate", "Advanced", "Expert")
+PROFICIENCY_LEVELS_BY_KEY = {level.lower(): level for level in PROFICIENCY_LEVELS}
+
+
+def _normalize_requested_level(level: Optional[str]) -> Optional[str]:
+    if level is None:
+        return None
+    normalized = str(level).strip().lower()
+    if not normalized:
+        return None
+    if normalized not in PROFICIENCY_LEVELS_BY_KEY:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid level. Use one of: Beginner, Intermediate, Advanced, Expert",
+        )
+    return PROFICIENCY_LEVELS_BY_KEY[normalized]
+
+
+def _normalized_proficiency_expr():
+    # Legacy rows may have NULL/blank level; treat them as beginner.
+    return func.coalesce(func.nullif(func.lower(func.trim(models.UserSkill.proficiency_level)), ""), "beginner")
+
+
+def _canonicalize_level_value(value: Optional[str]) -> str:
+    normalized = str(value or "").strip().lower()
+    return PROFICIENCY_LEVELS_BY_KEY.get(normalized, "Beginner")
 
 @router.get("/skills", response_model=List[SkillSearchResult])
 def get_all_skills(
@@ -20,16 +46,20 @@ def get_all_skills(
     level: Optional[str] = None,
     sort_by: str = "popularity"
 ):
+    normalized_level = _normalize_requested_level(level)
+    normalized_level_key = normalized_level.lower() if normalized_level else None
+
     # Subquery to count mentors per skill
-    mentor_count_subq = (
+    mentor_count_query = (
         db.query(
             models.UserSkill.skill_id,
             func.count(func.distinct(models.UserSkill.user_id)).label("mentor_count")
         )
-        .filter(models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES))
-        .group_by(models.UserSkill.skill_id)
-        .subquery()
+        .filter(func.lower(models.UserSkill.skill_type).in_(TEACH_SKILL_TYPES))
     )
+    if normalized_level_key:
+        mentor_count_query = mentor_count_query.filter(_normalized_proficiency_expr() == normalized_level_key)
+    mentor_count_subq = mentor_count_query.group_by(models.UserSkill.skill_id).subquery()
 
     # Main query: Skills LEFT JOIN mentor counts
     base_query = db.query(
@@ -49,6 +79,8 @@ def get_all_skills(
         base_query = base_query.filter(
             models.Skill.category.ilike(category)
         )
+    if normalized_level_key:
+        base_query = base_query.filter(func.coalesce(mentor_count_subq.c.mentor_count, 0) > 0)
 
     # Sorting
     if sort_by == "popularity":
@@ -66,7 +98,7 @@ def get_all_skills(
             "name": skill.title,
             "description": skill.description or "",
             "category": skill.category or "General",
-            "level": "Beginner",
+            "level": normalized_level,
             "mentor_count": count
         }
         for skill, count in results
@@ -108,7 +140,7 @@ def get_trending_skills(
             models.UserSkill.skill_id.label("skill_id"),
             func.count(func.distinct(models.UserSkill.user_id)).label("mentor_count"),
         )
-        .filter(models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES))
+        .filter(func.lower(models.UserSkill.skill_type).in_(TEACH_SKILL_TYPES))
         .group_by(models.UserSkill.skill_id)
         .subquery()
     )
@@ -136,7 +168,7 @@ def get_trending_skills(
             "name": skill.title,
             "description": skill.description or "",
             "category": skill.category or "General",
-            "level": "Beginner",
+            "level": None,
             "mentor_count": mentor_count,
         }
         for skill, _, mentor_count in rows
@@ -158,7 +190,7 @@ def get_recent_skills(
             models.UserSkill.skill_id.label("skill_id"),
             func.count(func.distinct(models.UserSkill.user_id)).label("mentor_count"),
         )
-        .filter(models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES))
+        .filter(func.lower(models.UserSkill.skill_type).in_(TEACH_SKILL_TYPES))
         .group_by(models.UserSkill.skill_id)
         .subquery()
     )
@@ -180,7 +212,7 @@ def get_recent_skills(
             "name": skill.title,
             "description": skill.description or "",
             "category": skill.category or "General",
-            "level": "Beginner",
+            "level": None,
             "mentor_count": mentor_count,
         }
         for skill, mentor_count in rows
@@ -188,22 +220,30 @@ def get_recent_skills(
 
 
 @router.get("/mentors/{skill_id}", response_model=List[MentorSearchResult])
-def get_mentors_for_skill(skill_id: int, db: Session = Depends(get_db)):
+def get_mentors_for_skill(
+    skill_id: int,
+    level: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
     """
     Get all mentors who teach a specific skill (public endpoint - no auth required).
     """
-    mentor_link_subq = (
+    normalized_level = _normalize_requested_level(level)
+    normalized_level_key = normalized_level.lower() if normalized_level else None
+
+    mentor_link_query = (
         db.query(
             models.UserSkill.user_id.label("user_id"),
             func.min(models.UserSkill.id).label("user_skill_id"),
         )
         .filter(
             models.UserSkill.skill_id == skill_id,
-            models.UserSkill.skill_type.in_(TEACH_SKILL_TYPES),
+            func.lower(models.UserSkill.skill_type).in_(TEACH_SKILL_TYPES),
         )
-        .group_by(models.UserSkill.user_id)
-        .subquery()
     )
+    if normalized_level_key:
+        mentor_link_query = mentor_link_query.filter(_normalized_proficiency_expr() == normalized_level_key)
+    mentor_link_subq = mentor_link_query.group_by(models.UserSkill.user_id).subquery()
 
     mentor_session_count_subq = (
         db.query(
@@ -243,6 +283,7 @@ def get_mentors_for_skill(skill_id: int, db: Session = Depends(get_db)):
             "mentor_name": us.user.name,
             "qualification": getattr(us.user.profile, "qualification", "N/A") if us.user.profile else "N/A",
             "experience": getattr(us.user.profile, "experience", "N/A") if us.user.profile else "N/A",
+            "proficiency_level": _canonicalize_level_value(us.proficiency_level),
             "rating": round(float(average_rating), 2) if average_rating is not None else None,
             "session_count": int(session_count or 0),
         }

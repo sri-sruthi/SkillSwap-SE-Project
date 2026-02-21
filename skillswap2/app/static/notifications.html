@@ -1,269 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notifications - SkillSwap</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #1f2937;
-    }
-    .topbar {
-      background: #fff;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-      padding: 14px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .brand {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #4f46e5;
-      text-decoration: none;
-    }
-    .container-wrap {
-      max-width: 1000px;
-      margin: 28px auto;
-      padding: 0 16px 30px;
-    }
-    .card-shell {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.2);
-      overflow: hidden;
-    }
-    .card-header {
-      padding: 18px 20px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .title {
-      margin: 0;
-      font-size: 1.2rem;
-      font-weight: 700;
-    }
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .list-area {
-      padding: 10px 16px 16px;
-      min-height: 180px;
-    }
-    .notif-item {
-      border: 1px solid #e5e7eb;
-      border-left: 4px solid #6366f1;
-      border-radius: 10px;
-      padding: 12px;
-      margin-top: 10px;
-      background: #fff;
-    }
-    .notif-item.read {
-      border-left-color: #9ca3af;
-      opacity: 0.85;
-      background: #f9fafb;
-    }
-    .notif-meta {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .notif-event {
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      color: #4f46e5;
-      text-transform: uppercase;
-    }
-    .notif-time {
-      color: #6b7280;
-      font-size: 0.82rem;
-    }
-    .notif-message {
-      margin: 0;
-      color: #111827;
-      line-height: 1.4;
-    }
-    .empty-state {
-      text-align: center;
-      color: #6b7280;
-      padding: 24px 8px;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body>
-  <div class="topbar">
-    <a class="brand" href="/static/search.html">SkillSwap</a>
-    <div class="d-flex align-items-center gap-2">
-      <a href="/static/search.html" class="btn btn-outline-primary btn-sm">Home</a>
-      <a href="/static/sessions.html" class="btn btn-outline-primary btn-sm">My Sessions</a>
-      <button class="btn btn-outline-danger btn-sm" onclick="logout()">Logout</button>
-    </div>
-  </div>
-
-  <div class="container-wrap">
-    <div class="card-shell">
-      <div class="card-header">
-        <h1 class="title">Notifications</h1>
-        <div class="toolbar">
-          <button id="allBtn" class="btn btn-primary btn-sm" onclick="changeFilter(false)">All</button>
-          <button id="unreadBtn" class="btn btn-outline-primary btn-sm" onclick="changeFilter(true)">Unread only</button>
-          <button class="btn btn-outline-secondary btn-sm" onclick="loadNotifications()">Refresh</button>
-          <button class="btn btn-success btn-sm" onclick="markAllRead()">Mark all read</button>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - SkillSwap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 30px 20px;
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        .card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .page-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 5px;
+        }
+        .notification-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s;
+        cursor: pointer;
+        }
+        .notification-item:hover { background: #f9fafb; }
+        .notification-item.unread {
+        background: #f0f4ff;
+        border-color: #c7d2fe;
+        }
+        .notif-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        }
+        .icon-session_requested   { background: #dbeafe; color: #2563eb; }
+        .icon-session_confirmed   { background: #d1fae5; color: #059669; }
+        .icon-session_declined    { background: #fee2e2; color: #dc2626; }
+        .icon-session_completed   { background: #fef3c7; color: #d97706; }
+        .icon-review_received     { background: #fce7f3; color: #db2777; }
+        .icon-session_cancelled   { background: #f3f4f6; color: #6b7280; }
+        .icon-default             { background: #f3f4f6; color: #6b7280; }
+        .notif-message { font-size: 0.95rem; color: #374151; margin-bottom: 3px; }
+        .notif-time { font-size: 0.8rem; color: #9ca3af; }
+        .unread-dot {
+        width: 8px; height: 8px;
+        background: #667eea;
+        border-radius: 50%;
+        margin-top: 6px;
+        flex-shrink: 0;
+        }
+        .btn-mark-all {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        }
+        .back-link { color: #667eea; text-decoration: none; font-weight: 600; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #9ca3af; }
+        .empty-state i { font-size: 3rem; margin-bottom: 15px; display: block; }
+    </style>
+    </head>
+    <body>
+    <div class="container">
+    <div class="card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="/static/search.html" class="back-link">
+            <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+            <h1 class="page-title mt-2">Notifications</h1>
+            <p id="unreadBadge" class="text-muted mb-0"></p>
         </div>
-      </div>
-      <div class="list-area" id="notificationsList">
-        <div class="empty-state">Loading notifications...</div>
-      </div>
-    </div>
-  </div>
+        <button class="btn-mark-all" onclick="markAllRead()">
+            <i class="fas fa-check-double me-1"></i> Mark All Read
+        </button>
+        </div>
 
-  <script>
+        <div id="notificationsList">
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            Loading...
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
     const API_BASE = window.location.origin;
     const token = localStorage.getItem("token");
-    let unreadOnly = false;
 
     if (!token) {
-      window.location.href = "/static/login.html";
+    window.location.href = "/static/login.html";
     }
 
-    function escapeHtml(value) {
-      if (value === null || value === undefined) return "";
-      return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
+    const ICONS = {
+    session_requested:          { icon: "fa-calendar-plus",   cls: "icon-session_requested" },
+    session_confirmed:          { icon: "fa-check-circle",    cls: "icon-session_confirmed" },
+    session_declined:           { icon: "fa-times-circle",    cls: "icon-session_declined" },
+    session_completed:          { icon: "fa-star",            cls: "icon-session_completed" },
+    session_cancelled:          { icon: "fa-ban",             cls: "icon-session_cancelled" },
+    session_reschedule_accepted:{ icon: "fa-calendar-check",  cls: "icon-session_confirmed" },
+    session_reschedule_declined:{ icon: "fa-calendar-times",  cls: "icon-session_declined" },
+    review_received:            { icon: "fa-star-half-alt",   cls: "icon-review_received" },
+    };
 
-    function formatEvent(eventType) {
-      return String(eventType || "notification")
-        .replace(/_/g, " ")
-        .trim();
-    }
-
-    function formatTime(isoValue) {
-      if (!isoValue) return "Unknown time";
-      const dt = new Date(isoValue);
-      if (Number.isNaN(dt.getTime())) return "Unknown time";
-      return dt.toLocaleString();
-    }
-
-    function setFilterButtons() {
-      const allBtn = document.getElementById("allBtn");
-      const unreadBtn = document.getElementById("unreadBtn");
-      if (unreadOnly) {
-        unreadBtn.className = "btn btn-primary btn-sm";
-        allBtn.className = "btn btn-outline-primary btn-sm";
-      } else {
-        allBtn.className = "btn btn-primary btn-sm";
-        unreadBtn.className = "btn btn-outline-primary btn-sm";
-      }
-    }
-
-    function renderNotifications(items) {
-      const list = document.getElementById("notificationsList");
-      if (!Array.isArray(items) || items.length === 0) {
-        list.innerHTML = `<div class="empty-state">${unreadOnly ? "No unread notifications." : "No notifications found."}</div>`;
-        return;
-      }
-
-      list.innerHTML = items.map((item) => {
-        const markReadButton = item.is_read
-          ? ""
-          : `<button class="btn btn-outline-primary btn-sm" onclick="markRead(${item.id})">Mark read</button>`;
-        return `
-          <div class="notif-item ${item.is_read ? "read" : ""}">
-            <div class="notif-meta">
-              <div class="notif-event">${escapeHtml(formatEvent(item.event_type))}</div>
-              <div class="d-flex align-items-center gap-2">
-                <span class="notif-time">${escapeHtml(formatTime(item.created_at))}</span>
-                ${markReadButton}
-              </div>
-            </div>
-            <p class="notif-message">${escapeHtml(item.message || "")}</p>
-          </div>
-        `;
-      }).join("");
+    function timeAgo(isoString) {
+    if (!isoString) return "";
+    const diff = Math.floor((Date.now() - new Date(isoString)) / 1000);
+    if (diff < 60) return "just now";
+    if (diff < 3600) return Math.floor(diff/60) + " min ago";
+    if (diff < 86400) return Math.floor(diff/3600) + " hr ago";
+    return Math.floor(diff/86400) + " days ago";
     }
 
     async function loadNotifications() {
-      const list = document.getElementById("notificationsList");
-      list.innerHTML = `<div class="empty-state">Loading notifications...</div>`;
-      try {
-        const query = unreadOnly ? "?unread_only=true&limit=200" : "?limit=200";
-        const res = await fetch(`${API_BASE}/notifications/my${query}`, {
-          headers: { "Authorization": `Bearer ${token}` }
+    try {
+        const res = await fetch(`${API_BASE}/notifications/my`, {
+        headers: { "Authorization": `Bearer ${token}` }
         });
-        if (res.status === 401) {
-          logout();
-          return;
+        if (!res.ok) throw new Error("Failed to load");
+        const notifications = await res.json();
+
+        const unread = notifications.filter(n => !n.is_read).length;
+        document.getElementById("unreadBadge").textContent =
+        unread > 0 ? `${unread} unread` : "All caught up!";
+
+        const container = document.getElementById("notificationsList");
+
+        if (notifications.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+            <i class="fas fa-bell-slash"></i>
+            <p>No notifications yet</p>
+            </div>`;
+        return;
         }
-        if (!res.ok) throw new Error("Failed to load notifications");
-        const data = await res.json();
-        renderNotifications(Array.isArray(data) ? data : []);
-      } catch (error) {
-        list.innerHTML = `<div class="empty-state">Could not load notifications.</div>`;
-      }
+
+        container.innerHTML = notifications.map(n => {
+        const meta = ICONS[n.event_type] || { icon: "fa-bell", cls: "icon-default" };
+        return `
+            <div class="notification-item ${n.is_read ? '' : 'unread'}"
+                onclick="markRead(${n.id}, this)">
+            <div class="notif-icon ${meta.cls}">
+                <i class="fas ${meta.icon}"></i>
+            </div>
+            <div style="flex:1">
+                <div class="notif-message">${n.message}</div>
+                <div class="notif-time">${timeAgo(n.created_at)}</div>
+            </div>
+            ${!n.is_read ? '<div class="unread-dot"></div>' : ''}
+            </div>`;
+        }).join("");
+    } catch (err) {
+    console.error("Notification fetch error:", err);
+    document.getElementById("notificationsList").innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>
+            <p style="color:#ef4444;">Error: ${err.message}</p>
+            <p style="font-size:0.8rem;">Check browser console for details</p>
+        </div>`;
+    }
     }
 
-    async function markRead(notificationId) {
-      try {
-        const res = await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
-          method: "PATCH",
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Failed to mark as read");
-        loadNotifications();
-      } catch (error) {
-        alert("Failed to mark notification as read.");
-      }
+    async function markRead(id, element) {
+    await fetch(`${API_BASE}/notifications/${id}/read`, {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+    element.classList.remove("unread");
+    const dot = element.querySelector(".unread-dot");
+    if (dot) dot.remove();
     }
 
     async function markAllRead() {
-      try {
-        const res = await fetch(`${API_BASE}/notifications/read-all`, {
-          method: "PATCH",
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Failed to mark all as read");
-        loadNotifications();
-      } catch (error) {
-        alert("Failed to mark all notifications as read.");
-      }
-    }
-
-    function changeFilter(nextUnreadOnly) {
-      unreadOnly = Boolean(nextUnreadOnly);
-      setFilterButtons();
-      loadNotifications();
-    }
-
-    function logout() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      localStorage.removeItem("userName");
-      window.location.href = "/static/login.html";
-    }
-
-    setFilterButtons();
+    await fetch(`${API_BASE}/notifications/read-all`, {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}` }
+    });
     loadNotifications();
-  </script>
-</body>
-</html>
+    }
+
+    loadNotifications();
+    </script>
+    </body>
+    </html>

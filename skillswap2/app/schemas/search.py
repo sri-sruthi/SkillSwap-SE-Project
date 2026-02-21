@@ -33,6 +33,7 @@ class MentorSearchResult(BaseModel):
     mentor_name: str
     qualification: Optional[str] = None
     experience: Optional[str] = None
+    proficiency_level: Optional[str] = "Beginner"
     rating: Optional[float] = None
     session_count: Optional[int] = 0
 
